@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
 import "./globals.css";
 
-const roboto = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
-});
+import { Roboto } from "next/font/google";
+const roboto = Roboto({ subsets: ["latin"], variable: "--font-roboto" });
+
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,12 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${roboto.variable} antialiased`}
-      >
-        {children}
-      </body>
+    <html lang="en" className={roboto.className}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

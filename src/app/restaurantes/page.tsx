@@ -5,6 +5,7 @@ import Image from "next/image";
 import Footer from '@/components/Footer';
 import Link from "next/link";
 import { FaStar } from 'react-icons/fa';
+import Breadcrumb from '@/components/Breadcrumb';
 
 const cardsData = [
   {
@@ -84,10 +85,16 @@ export default function Page() {
   return (
     <>
       <HeaderMenu />
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Restaurantes", href: "/restaurantes" },
+        ]}
+      />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto containerBox">
         <section className="py-6">
           <div className='text-black font-bold text-2xl'>Lista de restaurantes</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mt-6">
             {cardsData.map((card) => (
               <div
                 key={card.id}
@@ -98,7 +105,7 @@ export default function Page() {
                   alt={card.title}
                   width={400}
                   height={250}
-                  className="w-full h-40 object-cover rounded-md"
+                  className="w-full h-28 lg:h-40 object-cover rounded-md"
                 />
                 <div className="flex text-yellow-400 mt-2">
                   {Array.from({ length: 5 }).map((_, i) => (

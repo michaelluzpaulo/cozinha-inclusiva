@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 import HeaderMenu from '@/components/HeaderMenu';
 import Banner from '@/components/Banner';
 import Footer from '@/components/Footer';
-import { FaStar,FaHeart } from "react-icons/fa";
+import { FaStar, FaHeart } from "react-icons/fa";
 
 const cardsData = [
   {
@@ -94,7 +94,7 @@ export default function Home() {
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto containerBox">
         <section className="py-6">
           <div className='text-black font-bold text-2xl'>Restaurantes em destaque</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-6">
             {cardsData.map((card) => (
               <div
                 key={card.id}
@@ -105,7 +105,7 @@ export default function Home() {
                   alt={card.title}
                   width={400}
                   height={250}
-                  className="w-full h-40 object-cover rounded-md"
+                  className="w-full h-28 lg:h-40 object-cover rounded-md"
                 />
                 <div className="flex text-yellow-400 mt-2">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -120,7 +120,7 @@ export default function Home() {
                   {card.text}
                 </p>
                 <Link
-                  href=""
+                  href={`/restaurante/${card.id}`}
                   className="w-full mt-2 py-1 bg-green-600 text-white font-medium 
              hover:bg-green-700 transition text-center block rounded-md"
                 >
@@ -132,7 +132,7 @@ export default function Home() {
         </section>
         <section className="py-6">
           <div className='text-black font-bold text-2xl'>Receitas em destaque</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {cards.map((card) => (
               <div
                 key={card.id}
@@ -144,7 +144,7 @@ export default function Home() {
                     alt={card.title}
                     width={400}
                     height={250}
-                    className="w-full h-40 object-cover rounded-md"
+                    className="w-full h-28 lg:h-40 object-cover rounded-md"
                   />
                   <FaHeart
                     onClick={() => toggleFavorite(card.id)}
@@ -156,7 +156,7 @@ export default function Home() {
                 <p className="text-gray-600 text-sm line-clamp-2 mt-1">{card.text}</p>
                 <p className="text-black font-bold text-[12px] mt-1">{card.type}</p>
                 <Link
-                  href=""
+                  href={`/receita/${card.id}`}
                   className="w-full mt-2 py-1 bg-green-600 text-white font-medium 
              hover:bg-green-700 transition text-center block rounded-md"
                 >

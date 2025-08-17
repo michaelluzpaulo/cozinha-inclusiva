@@ -9,8 +9,6 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,8 +21,9 @@ body {
   padding: 0 80px;
 }
 
-@media (max-width: 300px) {
+@media (max-width: 640px) {
   .containerBox {
     padding: 0 16px;
   }
+
 }

@@ -1,18 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SiFacebook, SiInstagram } from "react-icons/si";
+import Newsletter from "./News";
 
 export default function Footer() {
 
   return (
     <footer >
-      <div className="flex flex-wrap gap-4 bg-gray-600  containerBox">
+      <div className="flex flex-wrap  lg:gap-4 bg-gray-600  containerBox">
         <div className="flex-1 min-w-[200px]  text-white text-center py-4">
           <Link href="/">
             <Image src="/logoFooter.png" alt="Logo" width={146} height={94} priority />
           </Link>
         </div>
-        <div className="flex-1 min-w-[200px]  text-white  py-4">
+        <div className="flex-1 min-w-[200px]  text-white  py-4 hidden lg:block">
           <div className="font-bold text-xl">Links</div>
           <nav className="flex flex-col gap-2 mt-2">
             <Link href="/" className="hover:text-green-300">Home</Link>
@@ -35,23 +36,7 @@ export default function Footer() {
         <div className="flex-1 min-w-[200px]  text-white  py-4">
           <div className="font-bold text-xl">Newsletter</div>
           <div className="mt-2">Assine o nosso newsletter para receber as notícias mais recentes</div>
-          <form action="#" method="POST" className="flex flex-col gap-2 mt-2 w-full max-w-sm">
-            <input
-              type="email"
-              name="email"
-              placeholder="voce@exemplo.com"
-              required
-              className="flex-1 border px-3 py-1 bg-white text-gray-800 
-               focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-            <button
-              type="submit"
-              className="w-40 py-1 border bg-green-600 text-white 
-               hover:bg-green-700 transition-colors"
-            >
-              Enviar
-            </button>
-          </form>
+          <Newsletter />
 
         </div>
       </div>

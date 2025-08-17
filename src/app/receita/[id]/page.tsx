@@ -3,6 +3,7 @@ import { useState } from 'react';
 import HeaderMenu from "@/components/HeaderMenu";
 import Image from "next/image";
 import Footer from '@/components/Footer';
+import Breadcrumb from '@/components/Breadcrumb';
 
 const receita = {
   id: 1,
@@ -16,6 +17,12 @@ export default function Page() {
   return (
     <>
       <HeaderMenu />
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Receita", href: "/receita" },
+        ]}
+      />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto">
         <section className="containerBox">
           <h1 className="text-3xl font-bold mb-2">{receita.title}</h1>

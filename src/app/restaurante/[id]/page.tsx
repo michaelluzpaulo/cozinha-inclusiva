@@ -6,6 +6,7 @@ import Link from "next/link";
 import HeaderMenu from "@/components/HeaderMenu";
 import Footer from '@/components/Footer';
 import { FaWhatsapp, FaPhone, FaGlobe } from "react-icons/fa";
+import Breadcrumb from "@/components/Breadcrumb";
 
 const restaurante = {
   id: 1,
@@ -20,6 +21,12 @@ export default function Page() {
   return (
     <>
       <HeaderMenu />
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Restaurante", href: "/restaurante" },
+        ]}
+      />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto">
         <section className="containerBox">
           <h1 className="text-3xl font-bold mb-2">{restaurante.title}</h1>
