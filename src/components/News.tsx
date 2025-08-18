@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useState } from "react";
 
 export default function Newsletter() {
@@ -27,13 +27,13 @@ export default function Newsletter() {
         e.target.reset();
       } else {
         setStatus({
-          message: "❌ Falha ao inscrever. Tente novamente.",
+          message: "X Falha ao inscrever. Tente novamente.",
           success: false,
         });
       }
     } catch (err) {
       setStatus({
-        message: "⚠️ Ocorreu um erro. Tente novamente mais tarde.",
+        message: "! Ocorreu um erro. Tente novamente mais tarde.",
         success: false,
       });
     } finally {
@@ -64,8 +64,9 @@ export default function Newsletter() {
 
       {status.message && (
         <p
-          className={`mt-2 ${status.success ? "text-green-600" : "text-red-600"
-            }`}
+          className={`mt-2 ${
+            status.success ? "text-green-600" : "text-red-600"
+          }`}
         >
           {status.message}
         </p>

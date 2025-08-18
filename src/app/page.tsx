@@ -1,11 +1,10 @@
-'use client'
-import { use, useState } from 'react';
+"use client";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import HeaderMenu from '@/components/HeaderMenu';
-import Banner from '@/components/Banner';
-import Footer from '@/components/Footer';
+import HeaderMenu from "@/components/HeaderMenu";
+import Banner from "@/components/Banner";
+import Footer from "@/components/Footer";
 import { FaStar, FaHeart } from "react-icons/fa";
 
 const cardsData = [
@@ -76,7 +75,6 @@ const specialCardsData = [
 export default function Home() {
   const [cards, setCards] = useState(specialCardsData);
 
-
   const toggleFavorite = (id: number) => {
     setCards((prevCards) =>
       prevCards.map((card) =>
@@ -93,7 +91,9 @@ export default function Home() {
       {/* Conteúdo abaixo do banner */}
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto containerBox">
         <section className="py-6">
-          <div className='text-black font-bold text-2xl'>Restaurantes em destaque</div>
+          <div className="text-black font-bold text-2xl">
+            Restaurantes em destaque
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-6">
             {cardsData.map((card) => (
               <div
@@ -111,7 +111,9 @@ export default function Home() {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <FaStar
                       key={i}
-                      className={i < card.rating ? "text-yellow-400" : "text-gray-300"}
+                      className={
+                        i < card.rating ? "text-yellow-400" : "text-gray-300"
+                      }
                     />
                   ))}
                 </div>
@@ -131,7 +133,9 @@ export default function Home() {
           </div>
         </section>
         <section className="py-6">
-          <div className='text-black font-bold text-2xl'>Receitas em destaque</div>
+          <div className="text-black font-bold text-2xl">
+            Receitas em destaque
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {cards.map((card) => (
               <div
@@ -148,13 +152,18 @@ export default function Home() {
                   />
                   <FaHeart
                     onClick={() => toggleFavorite(card.id)}
-                    className={`absolute top-2 right-2 text-xl cursor-pointer transition-colors ${card.favorite ? "text-red-500" : "text-gray-300"
-                      }`}
+                    className={`absolute top-2 right-2 text-xl cursor-pointer transition-colors ${
+                      card.favorite ? "text-red-500" : "text-gray-300"
+                    }`}
                   />
                 </div>
                 <h3 className="text-lg font-semibold mt-2">{card.title}</h3>
-                <p className="text-gray-600 text-sm line-clamp-2 mt-1">{card.text}</p>
-                <p className="text-black font-bold text-[12px] mt-1">{card.type}</p>
+                <p className="text-gray-600 text-sm line-clamp-2 mt-1">
+                  {card.text}
+                </p>
+                <p className="text-black font-bold text-[12px] mt-1">
+                  {card.type}
+                </p>
                 <Link
                   href={`/receita/${card.id}`}
                   className="w-full mt-2 py-1 bg-green-600 text-white font-medium 
@@ -168,10 +177,7 @@ export default function Home() {
         </section>
       </main>
 
-
       <Footer />
-
     </div>
-
   );
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { withMask } from "use-mask-input";
 import { useState } from "react";
 import HeaderMenu from "@/components/HeaderMenu";
@@ -49,14 +49,27 @@ export default function Page() {
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto containerBox">
         <h1 className="text-2xl font-bold">Entre em Contato</h1>
         <p className="text-gray-600">
-          Se você tiver alguma dúvida ou sugestão, sinta-se à vontade para entrar em contato conosco!
+          Se você tiver alguma dúvida ou sugestão, sinta-se à vontade para
+          entrar em contato conosco!
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Nome + Email */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input name="name" type="text" placeholder="Seu Nome" className="border p-2 rounded" required />
-            <input name="email" type="email" placeholder="Seu Email" className="border p-2 rounded" required />
+            <input
+              name="name"
+              type="text"
+              placeholder="Seu Nome"
+              className="border p-2 rounded"
+              required
+            />
+            <input
+              name="email"
+              type="email"
+              placeholder="Seu Email"
+              className="border p-2 rounded"
+              required
+            />
           </div>
 
           {/* Telefone */}
@@ -69,7 +82,13 @@ export default function Page() {
           />
 
           {/* Mensagem */}
-          <textarea name="message" placeholder="Sua Mensagem" className="border p-2 rounded" rows={4} required />
+          <textarea
+            name="message"
+            placeholder="Sua Mensagem"
+            className="border p-2 rounded"
+            rows={4}
+            required
+          />
 
           {/* Botão */}
           <div className="flex justify-center">

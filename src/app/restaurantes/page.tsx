@@ -1,11 +1,10 @@
-'use client'
-import { useState } from 'react';
+"use client";
 import HeaderMenu from "@/components/HeaderMenu";
 import Image from "next/image";
-import Footer from '@/components/Footer';
+import Footer from "@/components/Footer";
 import Link from "next/link";
-import { FaStar } from 'react-icons/fa';
-import Breadcrumb from '@/components/Breadcrumb';
+import { FaStar } from "react-icons/fa";
+import Breadcrumb from "@/components/Breadcrumb";
 
 const cardsData = [
   {
@@ -80,7 +79,6 @@ const cardsData = [
   },
 ];
 
-
 export default function Page() {
   return (
     <>
@@ -93,7 +91,9 @@ export default function Page() {
       />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto containerBox">
         <section className="py-6">
-          <div className='text-black font-bold text-2xl'>Lista de restaurantes</div>
+          <div className="text-black font-bold text-2xl">
+            Lista de restaurantes
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mt-6">
             {cardsData.map((card) => (
               <div
@@ -111,7 +111,9 @@ export default function Page() {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <FaStar
                       key={i}
-                      className={i < card.rating ? "text-yellow-400" : "text-gray-300"}
+                      className={
+                        i < card.rating ? "text-yellow-400" : "text-gray-300"
+                      }
                     />
                   ))}
                 </div>
