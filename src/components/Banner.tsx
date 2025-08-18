@@ -1,19 +1,19 @@
-'use client'
+"use client";
 import { useState, useEffect } from "react";
 
 export default function Banner() {
   const banners = [
     {
       img: "/banner1.png",
-      text: "Encontre restaurantes para restrições alimentares"
+      text: "Encontre restaurantes para restrições alimentares",
     },
     {
       img: "/banner2.jpg",
-      text: "Descubra receitas saudáveis para você"
+      text: "Descubra receitas saudáveis para você",
     },
     {
       img: "/banner3.jpg",
-      text: "Explore novos restaurantes na sua cidade"
+      text: "Explore novos restaurantes na sua cidade",
     },
   ];
 
@@ -52,8 +52,9 @@ export default function Banner() {
           <button
             key={index}
             onClick={() => setCurrent(index)}
-            className={`w-4 h-4 rounded-full ${index === current ? "bg-white" : "bg-white/50"
-              }`}
+            className={`w-4 h-4 rounded-full ${
+              index === current ? "bg-white" : "bg-white/50"
+            }`}
           />
         ))}
       </div>

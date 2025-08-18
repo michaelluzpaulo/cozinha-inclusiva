@@ -1,11 +1,10 @@
-'use client';
-import { useParams } from "next/navigation";
+"use client";
 import Image from "next/image";
 import { FaStar } from "react-icons/fa";
-import Link from "next/link";
 import HeaderMenu from "@/components/HeaderMenu";
-import Footer from '@/components/Footer';
+import Footer from "@/components/Footer";
 import { FaWhatsapp, FaPhone, FaGlobe } from "react-icons/fa";
+import Breadcrumb from "@/components/Breadcrumb";
 
 const restaurante = {
   id: 1,
@@ -16,16 +15,26 @@ const restaurante = {
 };
 
 export default function Page() {
-
   return (
     <>
       <HeaderMenu />
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Restaurante", href: "/restaurante" },
+        ]}
+      />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto">
         <section className="containerBox">
           <h1 className="text-3xl font-bold mb-2">{restaurante.title}</h1>
           <div className="flex text-yellow-400 mb-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <FaStar key={i} className={i < restaurante.rating ? "text-yellow-400" : "text-gray-300"} />
+              <FaStar
+                key={i}
+                className={
+                  i < restaurante.rating ? "text-yellow-400" : "text-gray-300"
+                }
+              />
             ))}
           </div>
 
@@ -42,7 +51,6 @@ export default function Page() {
             <div>
               <p>{restaurante.text}</p>
             </div>
-
           </div>
         </section>
         <section className="containerBox bg-green-600">
@@ -56,7 +64,10 @@ export default function Page() {
               <FaGlobe title="Site" className="text-2xl text-green-600" />
               <p className="text-black font-bold">site.com.br</p>
             </a>
-            <a href="tel:+555155555555" className="bg-white p-4 rounded-md shadow flex gap-2 items-center justify-center shadow-lg  hover:scale-105 transition-transform">
+            <a
+              href="tel:+555155555555"
+              className="bg-white p-4 rounded-md shadow flex gap-2 items-center justify-center shadow-lg  hover:scale-105 transition-transform"
+            >
               <FaPhone title="Telefone" className="text-2xl text-green-600" />
               <p className="text-black font-bold">(51) 5555-5555</p>
             </a>
@@ -66,7 +77,10 @@ export default function Page() {
               rel="noopener noreferrer"
               className="bg-white p-4 rounded-md shadow flex gap-2 items-center justify-center shadow-lg  hover:scale-105 transition-transform"
             >
-              <FaWhatsapp title="WhatsApp" className="text-2xl text-green-600" />
+              <FaWhatsapp
+                title="WhatsApp"
+                className="text-2xl text-green-600"
+              />
               <p className="text-black font-bold">WhatsApp</p>
             </a>
           </div>
@@ -84,12 +98,10 @@ export default function Page() {
               title="Localização"
             ></iframe>
           </div>
-
         </section>
       </main>
 
       <Footer />
     </>
   );
-
 }
