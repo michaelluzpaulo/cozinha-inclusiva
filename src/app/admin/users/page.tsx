@@ -13,6 +13,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Edit, Trash2, Plus } from "lucide-react";
+import CreateUserDialog from "./_component/CreateUserDialog";
 
 // Dados simulados
 const USERS = [
@@ -24,6 +25,7 @@ const USERS = [
 export default function UsersPage() {
   const [queryId, setQueryId] = useState("");
   const [queryName, setQueryName] = useState("");
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
 
   const filteredUsers = USERS.filter((user) => {
     const matchId = queryId ? user.id === Number(queryId) : true;
@@ -38,9 +40,8 @@ export default function UsersPage() {
     console.log("Pesquisar", queryId, queryName);
   }
 
-  function handleAdd() {
-    // opcional: abrir modal de adicionar usuário
-    console.log("Adicionar novo usuário");
+  function handleCreateUser() {
+    setIsCreateUserDialogOpen(true);
   }
 
   return (
@@ -48,7 +49,7 @@ export default function UsersPage() {
       <Card className="space-y-4">
         <CardHeader className="flex justify-between items-center">
           <h2 className="text-lg font-semibold">Usuários</h2>
-          <Button variant="default" size="sm" onClick={handleAdd}>
+          <Button variant="default" size="sm" onClick={handleCreateUser}>
             <Plus size={16} className="mr-1" /> Adicionar
           </Button>
         </CardHeader>
@@ -110,6 +111,11 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
+      <CreateUserDialog
+        open={isCreateUserDialogOpen}
+        onOpenChange={setIsCreateUserDialogOpen}
+        // onAddUser={handleAddUser}
+      />
     </div>
   );
 }
