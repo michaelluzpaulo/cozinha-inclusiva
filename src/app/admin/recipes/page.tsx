@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,13 @@ import {
 } from "@/components/ui/table";
 import { Edit, Trash2, Plus } from "lucide-react";
 import CreateRecipeDialog from "./_component/CreateRecipeDialog";
-import EditRecipeDialog, { Recipe } from "./_component/EditRecipeDialog";
-import { Recipes } from "@/lib/recipes";
+import { CreateRecipeAction } from "@/Actions/Recipe/CreateRecipeAction";
+import EditRecipeDialog from "./_component/EditRecipeDialog";
+import { UpdateRecipeAction } from "@/Actions/Recipe/UpdateRecipeAction";
+import type { Recipe as RecipeBase } from "@/Contracts/Recipe";
+type Recipe = RecipeBase & { restrictions: number[] };
+import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import { ListRecipesAction } from "@/Actions/Recipe/ListRecipesAction";
 
 export default function RecipesPage() {
   const [queryId, setQueryId] = useState("");
@@ -23,12 +28,35 @@ export default function RecipesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editRecipe, setEditRecipe] = useState<Recipe | null>(null);
-  const [recipes, setRecipes] = useState(Recipes);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [restrictions, setRestrictions] = useState<
+    { id: number; name: string }[]
+  >([]);
+
+  // Carregar receitas e restrições do banco
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [recipesData, restrictionsData] = await Promise.all([
+          ListRecipesAction.execute(),
+          ListRestrictionsAction.execute(),
+        ]);
+        setRecipes(recipesData);
+        setRestrictions(
+          restrictionsData.map((r: any) => ({ id: r.id, name: r.name }))
+        );
+      } catch {
+        setRecipes([]);
+        setRestrictions([]);
+      }
+    }
+    fetchData();
+  }, []);
 
   const filteredRecipes = recipes.filter((recipe) => {
     const matchId = queryId ? recipe.id === Number(queryId) : true;
     const matchName = queryName
-      ? recipe.name.toLowerCase().includes(queryName.toLowerCase())
+      ? (recipe.title || "").toLowerCase().includes(queryName.toLowerCase())
       : true;
     return matchId && matchName;
   });
@@ -42,22 +70,34 @@ export default function RecipesPage() {
     setIsCreateDialogOpen(true);
   }
 
-  function handleEditRecipe(recipe: any) {
-    setEditRecipe({
-      id: recipe.id,
-      name: recipe.name,
-      description: recipe.description,
-      restrictions: recipe.restrictions || "",
-    });
+  function handleEditRecipe(recipe: Recipe) {
+    setEditRecipe(recipe);
     setIsEditDialogOpen(true);
   }
 
-  function handleUpdateRecipe(updated: Recipe) {
-    setRecipes((prev) =>
-      prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r))
+  async function handleUpdateRecipe(updated: Recipe) {
+    // Atualiza no banco e recarrega a lista
+    await UpdateRecipeAction.execute(
+      {
+        id: updated.id,
+        title: updated.title,
+        description: updated.description,
+      },
+      updated.restrictions
     );
+    const recipesData = await ListRecipesAction.execute();
+    setRecipes(recipesData);
     setIsEditDialogOpen(false);
     setEditRecipe(null);
+  }
+
+  async function handleAddRecipe(
+    recipe: { title: string; description: string },
+    restrictions: number[]
+  ) {
+    await CreateRecipeAction.execute(recipe, restrictions);
+    const recipesData = await ListRecipesAction.execute();
+    setRecipes(recipesData);
   }
 
   return (
@@ -97,18 +137,26 @@ export default function RecipesPage() {
                 <TableHead className="w-24 text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {filteredRecipes.map((recipe) => (
                 <TableRow key={recipe.id}>
                   <TableCell className="w-16 text-center">
                     {recipe.id}
                   </TableCell>
-                  <TableCell className="min-w-0">{recipe.name}</TableCell>
+                  <TableCell className="min-w-0">{recipe.title}</TableCell>
                   <TableCell className="min-w-0">
                     {recipe.description}
                   </TableCell>
                   <TableCell className="min-w-0">
-                    {recipe.restrictions}
+                    {Array.isArray(recipe.restrictions)
+                      ? recipe.restrictions
+                          .map(
+                            (id: number) =>
+                              restrictions.find((r) => r.id === id)?.name || id
+                          )
+                          .join(", ")
+                      : ""}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex gap-1 justify-center w-24">
@@ -145,13 +193,17 @@ export default function RecipesPage() {
       <CreateRecipeDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        // onAddRecipe={handleAddRecipe}
+        onAddRecipe={handleAddRecipe}
       />
       {editRecipe && (
         <EditRecipeDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          recipe={editRecipe}
+          recipe={{
+            ...editRecipe,
+            id: editRecipe.id ?? 0,
+            description: editRecipe.description ?? "",
+          }}
           onUpdateRecipe={handleUpdateRecipe}
         />
       )}

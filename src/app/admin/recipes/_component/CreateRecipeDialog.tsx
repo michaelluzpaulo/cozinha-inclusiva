@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,20 +14,22 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+import type { Restriction } from "@/Contracts/Restriction";
+import type { Recipe } from "@/Contracts/Recipe";
+
 interface CreateRecipeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddRecipe?: (recipe: {
-    name: string;
-    description: string;
-    restrictions: string;
-  }) => void;
+  onAddRecipe?: (
+    recipe: { title: string; description: string },
+    restrictions: number[]
+  ) => void;
 }
 
 const initStateForm = {
-  name: "",
+  title: "",
   description: "",
-  restrictions: "",
+  restrictions: [] as number[],
 };
 
 export default function CreateRecipeDialog({
@@ -35,10 +38,33 @@ export default function CreateRecipeDialog({
   onAddRecipe,
 }: CreateRecipeDialogProps) {
   const [form, setForm] = useState<typeof initStateForm>(initStateForm);
+  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchRestrictions() {
+      setLoading(true);
+      try {
+        const data = await ListRestrictionsAction.execute();
+        setRestrictions(data);
+      } catch (e) {
+        setRestrictions([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (open) fetchRestrictions();
+  }, [open]);
 
   function handleSave() {
-    if (!form.name || !form.description) return;
-    onAddRecipe?.(form);
+    if (!form.title || !form.description) return;
+    onAddRecipe?.(
+      {
+        title: form.title,
+        description: form.description,
+      },
+      form.restrictions
+    );
     setForm(initStateForm);
     onOpenChange(false); // fecha o modal
   }
@@ -56,37 +82,59 @@ export default function CreateRecipeDialog({
         <div className="py-2">
           <div className="grid grid-cols-1 gap-4 py-2">
             <div className="grid w-full gap-1">
-              <Label htmlFor="name" className="text-gray-500 pl-1">
-                Nome da receita
+              <Label htmlFor="title" className="text-gray-500 pl-1">
+                Título da receita
               </Label>
               <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                id="name"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                id="title"
               />
+            </div>
+            <div className="grid w-full gap-1">
+              <Label className="text-gray-500 pl-1">
+                Restrições alimentares
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {loading && <span>Carregando...</span>}
+                {!loading && restrictions.length === 0 && (
+                  <span>Nenhuma restrição</span>
+                )}
+                {!loading &&
+                  restrictions.map((r) => (
+                    <label key={r.id} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={form.restrictions.includes(r.id!)}
+                        onChange={(e) => {
+                          setForm((prev) => {
+                            const checked = e.target.checked;
+                            const id = r.id!;
+                            return {
+                              ...prev,
+                              restrictions: checked
+                                ? [...prev.restrictions, id]
+                                : prev.restrictions.filter((rid) => rid !== id),
+                            };
+                          });
+                        }}
+                      />
+                      {r.name}
+                    </label>
+                  ))}
+              </div>
             </div>
             <div className="grid w-full gap-1">
               <Label htmlFor="description" className="text-gray-500 pl-1">
                 Descrição
               </Label>
-              <Input
+              <textarea
+                id="description"
+                className="border rounded px-2 py-1 min-h-[80px]"
                 value={form.description}
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                id="description"
-              />
-            </div>
-            <div className="grid w-full gap-1">
-              <Label htmlFor="restrictions" className="text-gray-500 pl-1">
-                Restrições
-              </Label>
-              <Input
-                value={form.restrictions}
-                onChange={(e) =>
-                  setForm({ ...form, restrictions: e.target.value })
-                }
-                id="restrictions"
               />
             </div>
           </div>

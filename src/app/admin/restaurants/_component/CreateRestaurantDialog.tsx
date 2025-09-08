@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import { maskCep, maskPhone } from "@/lib/mask";
+import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import type { Restriction } from "@/Contracts/Restriction";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,11 +17,28 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { generateSlug } from "@/lib/utils";
 
 interface CreateRestaurantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddRestaurant?: (restaurant: { name: string; email: string }) => void;
+  onAddRestaurant?: (restaurant: {
+    name: string;
+    email: string;
+    phone: string;
+    whatsapp: string;
+    site: string;
+    description: string;
+    cep: string;
+    uf: string;
+    city: string;
+    district: string;
+    street: string;
+    number: string;
+    restrictions: number[];
+    user_id: number;
+    slug: string;
+  }) => void;
 }
 
 const initStateForm = {
@@ -33,6 +54,7 @@ const initStateForm = {
   district: "",
   street: "",
   number: "",
+  restrictions: [] as number[],
 };
 
 export default function CreateRestaurantDialog({
@@ -41,10 +63,32 @@ export default function CreateRestaurantDialog({
   onAddRestaurant,
 }: CreateRestaurantDialogProps) {
   const [form, setForm] = useState<typeof initStateForm>(initStateForm);
+  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
+  const [loadingRestrictions, setLoadingRestrictions] = useState(false);
+
+  useEffect(() => {
+    async function fetchRestrictions() {
+      setLoadingRestrictions(true);
+      try {
+        const data = await ListRestrictionsAction.execute();
+        setRestrictions(data);
+      } catch {
+        setRestrictions([]);
+      } finally {
+        setLoadingRestrictions(false);
+      }
+    }
+    if (open) fetchRestrictions();
+  }, [open]);
 
   function handleSave() {
-    if (!form.name || !form.email) return;
-    onAddRestaurant?.(form);
+    if (!form.name) {
+      alert("O nome do restaurante é obrigatório.");
+      return;
+    }
+    // Gera slug a partir do nome
+    const slug = generateSlug(form.name);
+    onAddRestaurant?.({ ...form, user_id: 1, slug });
     setForm(initStateForm);
     onOpenChange(false); // fecha o modal
   }
@@ -78,8 +122,12 @@ export default function CreateRestaurantDialog({
               </Label>
               <Input
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, phone: maskPhone(e.target.value) })
+                }
                 id="phone"
+                maxLength={15}
+                placeholder="(99) 99999-9999"
               />
             </div>
 
@@ -89,8 +137,12 @@ export default function CreateRestaurantDialog({
               </Label>
               <Input
                 value={form.whatsapp}
-                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, whatsapp: maskPhone(e.target.value) })
+                }
                 id="whatsapp"
+                maxLength={15}
+                placeholder="(99) 99999-9999"
               />
             </div>
 
@@ -139,7 +191,11 @@ export default function CreateRestaurantDialog({
               </Label>
               <Input
                 value={form.cep}
-                onChange={(e) => setForm({ ...form, cep: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, cep: maskCep(e.target.value) })
+                }
+                maxLength={9}
+                placeholder="00000-000"
               />
             </div>
 
@@ -192,6 +248,42 @@ export default function CreateRestaurantDialog({
                 onChange={(e) => setForm({ ...form, number: e.target.value })}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Restrições alimentares */}
+        <div className="grid w-full gap-1 py-2">
+          <Label className="text-gray-500 pl-1">Restrições alimentares</Label>
+          <div className="flex flex-wrap gap-2">
+            {loadingRestrictions && <span>Carregando...</span>}
+            {!loadingRestrictions && restrictions.length === 0 && (
+              <span>Nenhuma restrição cadastrada</span>
+            )}
+            {!loadingRestrictions &&
+              restrictions.map((r) => (
+                <label key={r.id} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={form.restrictions.includes(r.id!)}
+                    onChange={(e) => {
+                      setForm((prev) => {
+                        const checked = e.target.checked;
+                        const id = r.id!;
+                        const restrictions = checked
+                          ? [...prev.restrictions, id]
+                          : prev.restrictions.filter((rid) => rid !== id);
+                        return {
+                          ...prev,
+                          restrictions: restrictions.filter(
+                            (v): v is number => typeof v === "number"
+                          ),
+                        };
+                      });
+                    }}
+                  />
+                  {r.name}
+                </label>
+              ))}
           </div>
         </div>
 
