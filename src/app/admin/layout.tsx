@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: "Usuários", href: "/admin/users" },
     { label: "Restaurantes", href: "/admin/restaurants" },
     { label: "Receitas", href: "/admin/recipes" },
+    { label: "Restrições", href: "/admin/restrictions" },
   ];
 
   function handleLogout() {

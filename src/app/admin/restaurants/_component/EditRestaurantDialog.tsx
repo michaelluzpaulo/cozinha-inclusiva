@@ -1,6 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+function maskCep(value: string) {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .slice(0, 9);
+}
+
+function maskPhone(value: string) {
+  let v = value.replace(/\D/g, "");
+  if (v.length <= 10) {
+    v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+  } else {
+    v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+  }
+  return v.slice(0, 15);
+}
+import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import { ListRestaurantRestrictionsAction } from "@/Actions/RestaurantRestriction/ListRestaurantRestrictionsAction";
+import type { Restriction } from "@/Contracts/Restriction";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -28,7 +48,7 @@ export interface Restaurant {
   district: string;
   street: string;
   number: string;
-  restrictions?: string;
+  restrictions?: number[];
 }
 
 interface EditRestaurantDialogProps {
@@ -46,9 +66,45 @@ export default function EditRestaurantDialog({
 }: EditRestaurantDialogProps) {
   const [form, setForm] = useState<Restaurant>(restaurant);
 
-  function handleSave() {
-    if (!form.name || !form.email) return;
-    onUpdateRestaurant({ ...form, id: restaurant.id });
+  // Sincroniza form ao abrir novo restaurante para edição
+  useEffect(() => {
+    setForm(restaurant);
+  }, [restaurant, open]);
+  const [activeTab, setActiveTab] = useState<
+    "dados" | "endereco" | "restricoes"
+  >("dados");
+  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
+  const [loadingRestrictions, setLoadingRestrictions] = useState(false);
+
+  // Carregar restrições e vínculos do restaurante ao abrir modal
+  useEffect(() => {
+    async function fetchRestrictions() {
+      setLoadingRestrictions(true);
+      try {
+        const [allRestrictions, restaurantRestrictionIds] = await Promise.all([
+          ListRestrictionsAction.execute(),
+          ListRestaurantRestrictionsAction.execute(restaurant.id),
+        ]);
+        setRestrictions(allRestrictions);
+        setForm((prev) => ({
+          ...prev,
+          restrictions: restaurantRestrictionIds.map(Number),
+        }));
+      } catch {
+        setRestrictions([]);
+      } finally {
+        setLoadingRestrictions(false);
+      }
+    }
+    if (open && activeTab === "restricoes") fetchRestrictions();
+  }, [open, activeTab, restaurant.id]);
+
+  async function handleSave() {
+    if (!form.name) {
+      alert("O nome do restaurante é obrigatório.");
+      return;
+    }
+    await onUpdateRestaurant({ ...form, id: restaurant.id });
     onOpenChange(false);
   }
 
@@ -62,14 +118,49 @@ export default function EditRestaurantDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-2">
+        {/* Tabs */}
+        <div className="flex border-b mb-4">
+          <button
+            className={`px-4 py-2 ${
+              activeTab === "dados"
+                ? "border-b-2 border-blue-500 font-semibold"
+                : ""
+            }`}
+            onClick={() => setActiveTab("dados")}
+          >
+            Dados
+          </button>
+          <button
+            className={`px-4 py-2 ${
+              activeTab === "endereco"
+                ? "border-b-2 border-blue-500 font-semibold"
+                : ""
+            }`}
+            onClick={() => setActiveTab("endereco")}
+          >
+            Endereço
+          </button>
+          <button
+            className={`px-4 py-2 ${
+              activeTab === "restricoes"
+                ? "border-b-2 border-blue-500 font-semibold"
+                : ""
+            }`}
+            onClick={() => setActiveTab("restricoes")}
+          >
+            Restrições
+          </button>
+        </div>
+
+        {/* Conteúdo das Tabs */}
+        {activeTab === "dados" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
             <div className="grid w-full gap-1">
               <Label htmlFor="name" className="text-gray-500 pl-1">
                 Nome do restaurante
               </Label>
               <Input
-                value={form.name}
+                value={form.name ?? ""}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 id="name"
               />
@@ -80,9 +171,13 @@ export default function EditRestaurantDialog({
                 Telefone
               </Label>
               <Input
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                value={form.phone ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, phone: maskPhone(e.target.value) })
+                }
                 id="phone"
+                maxLength={15}
+                placeholder="(99) 99999-9999"
               />
             </div>
 
@@ -91,9 +186,13 @@ export default function EditRestaurantDialog({
                 Whatsapp
               </Label>
               <Input
-                value={form.whatsapp}
-                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                value={form.whatsapp ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, whatsapp: maskPhone(e.target.value) })
+                }
                 id="whatsapp"
+                maxLength={15}
+                placeholder="(99) 99999-9999"
               />
             </div>
 
@@ -103,7 +202,7 @@ export default function EditRestaurantDialog({
               </Label>
               <Input
                 type="email"
-                value={form.email}
+                value={form.email ?? ""}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 id="email"
               />
@@ -114,34 +213,41 @@ export default function EditRestaurantDialog({
                 Site
               </Label>
               <Input
-                value={form.site}
+                value={form.site ?? ""}
                 onChange={(e) => setForm({ ...form, site: e.target.value })}
                 id="site"
               />
             </div>
-          </div>
 
-          <div className="grid w-full gap-1 py-2">
-            <Label htmlFor="description" className="text-gray-500 pl-1">
-              Descrição
-            </Label>
-            <Textarea
-              id="description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
+            <div className="grid w-full gap-1">
+              <Label htmlFor="description" className="text-gray-500 pl-1">
+                Descrição
+              </Label>
+              <Textarea
+                id="description"
+                value={form.description ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+              />
+            </div>
           </div>
+        )}
 
+        {activeTab === "endereco" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
             <div className="grid w-full gap-1">
               <Label htmlFor="cep" className="text-gray-500 pl-1">
                 CEP
               </Label>
               <Input
-                value={form.cep}
-                onChange={(e) => setForm({ ...form, cep: e.target.value })}
+                value={form.cep ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, cep: maskCep(e.target.value) })
+                }
+                id="cep"
+                maxLength={9}
+                placeholder="00000-000"
               />
             </div>
 
@@ -150,52 +256,96 @@ export default function EditRestaurantDialog({
                 UF
               </Label>
               <Input
-                value={form.uf}
+                value={form.uf ?? ""}
                 onChange={(e) => setForm({ ...form, uf: e.target.value })}
+                id="uf"
               />
             </div>
 
             <div className="grid w-full gap-1">
-              <Label htmlFor="cidade" className="text-gray-500 pl-1">
+              <Label htmlFor="city" className="text-gray-500 pl-1">
                 Cidade
               </Label>
               <Input
-                value={form.city}
+                value={form.city ?? ""}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
+                id="city"
               />
             </div>
 
             <div className="grid w-full gap-1">
-              <Label htmlFor="bairro" className="text-gray-500 pl-1">
+              <Label htmlFor="district" className="text-gray-500 pl-1">
                 Bairro
               </Label>
               <Input
-                value={form.district}
+                value={form.district ?? ""}
                 onChange={(e) => setForm({ ...form, district: e.target.value })}
+                id="district"
               />
             </div>
 
             <div className="grid w-full gap-1">
-              <Label htmlFor="logradouro" className="text-gray-500 pl-1">
+              <Label htmlFor="street" className="text-gray-500 pl-1">
                 Logradouro
               </Label>
               <Input
-                value={form.street}
+                value={form.street ?? ""}
                 onChange={(e) => setForm({ ...form, street: e.target.value })}
+                id="street"
               />
             </div>
 
             <div className="grid w-full gap-1">
-              <Label htmlFor="numero" className="text-gray-500 pl-1">
+              <Label htmlFor="number" className="text-gray-500 pl-1">
                 Número
               </Label>
               <Input
-                value={form.number}
+                value={form.number ?? ""}
                 onChange={(e) => setForm({ ...form, number: e.target.value })}
+                id="number"
               />
             </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === "restricoes" && (
+          <div className="grid grid-cols-1 gap-2 py-2">
+            <Label className="text-gray-500 pl-1">Restrições alimentares</Label>
+            <div className="flex flex-wrap gap-2">
+              {loadingRestrictions && <span>Carregando...</span>}
+              {!loadingRestrictions && restrictions.length === 0 && (
+                <span>Nenhuma restrição cadastrada</span>
+              )}
+              {!loadingRestrictions &&
+                restrictions.map((r) => (
+                  <label key={r.id} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={
+                        Array.isArray(form.restrictions) &&
+                        form.restrictions.includes(r.id)
+                      }
+                      onChange={(e) => {
+                        setForm((prev) => {
+                          const checked = e.target.checked;
+                          const id = r.id;
+                          return {
+                            ...prev,
+                            restrictions: checked
+                              ? [...(prev.restrictions || []), id]
+                              : (prev.restrictions || []).filter(
+                                  (rid) => rid !== id
+                                ),
+                          };
+                        });
+                      }}
+                    />
+                    {r.name}
+                  </label>
+                ))}
+            </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
