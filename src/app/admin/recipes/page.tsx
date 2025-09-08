@@ -199,7 +199,11 @@ export default function RecipesPage() {
         <EditRecipeDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          recipe={editRecipe}
+          recipe={{
+            ...editRecipe,
+            id: editRecipe.id ?? 0,
+            description: editRecipe.description ?? "",
+          }}
           onUpdateRecipe={handleUpdateRecipe}
         />
       )}

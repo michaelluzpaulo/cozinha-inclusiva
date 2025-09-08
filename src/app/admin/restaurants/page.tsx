@@ -71,6 +71,7 @@ export default function RestaurantsPage() {
             district: r.district ?? r.neighborhood ?? "",
             street: r.street ?? "",
             number: r.number ?? "",
+            slug: r.slug ?? "",
             restrictions: [],
           })
         );
@@ -193,6 +194,7 @@ export default function RestaurantsPage() {
         district: r.district ?? r.neighborhood ?? "",
         street: r.street ?? "",
         number: r.number ?? "",
+        slug: r.slug ?? "",
         restrictions: [],
       })
     );
