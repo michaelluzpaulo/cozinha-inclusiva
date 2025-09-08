@@ -13,7 +13,7 @@ export interface Restaurant {
   favorites_count?: number;
   rating_count?: number;
   stars_rating?: number;
-  logo?: string;
+  img?: string;
   created_at?: string;
   updated_at?: string;
 }

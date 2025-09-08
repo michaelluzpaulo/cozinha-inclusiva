@@ -39,6 +39,16 @@ export default function EditRecipeDialog({
     description: recipe.description ?? "",
     restrictions: recipe.restrictions ?? [],
   });
+
+  // Sincroniza o form sempre que a receita recebida mudar
+  useEffect(() => {
+    setForm({
+      id: recipe.id,
+      title: recipe.title,
+      description: recipe.description ?? "",
+      restrictions: recipe.restrictions ?? [],
+    });
+  }, [recipe]);
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loading, setLoading] = useState(false);
 

@@ -2,22 +2,9 @@
 
 import { useState, useEffect } from "react";
 
-function maskCep(value: string) {
-  return value
-    .replace(/\D/g, "")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .slice(0, 9);
-}
-
-function maskPhone(value: string) {
-  let v = value.replace(/\D/g, "");
-  if (v.length <= 10) {
-    v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
-  } else {
-    v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
-  }
-  return v.slice(0, 15);
-}
+import { maskCep, maskPhone } from "@/lib/mask";
+import { GetRestaurantLocationByRestaurantIdAction } from "@/Actions/RestaurantLocation/GetRestaurantLocationByRestaurantIdAction";
+import { generateSlug } from "@/lib/utils";
 import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
 import { ListRestaurantRestrictionsAction } from "@/Actions/RestaurantRestriction/ListRestaurantRestrictionsAction";
 import type { Restriction } from "@/Contracts/Restriction";
@@ -49,6 +36,7 @@ export interface Restaurant {
   street: string;
   number: string;
   restrictions?: number[];
+  slug: string;
 }
 
 interface EditRestaurantDialogProps {
@@ -66,9 +54,29 @@ export default function EditRestaurantDialog({
 }: EditRestaurantDialogProps) {
   const [form, setForm] = useState<Restaurant>(restaurant);
 
-  // Sincroniza form ao abrir novo restaurante para edição
+  // Sincroniza form ao abrir novo restaurante para edição e busca endereço
   useEffect(() => {
-    setForm(restaurant);
+    async function fetchAndSetLocation() {
+      setForm(restaurant);
+      if (restaurant.id) {
+        const location =
+          await GetRestaurantLocationByRestaurantIdAction.execute(
+            restaurant.id
+          );
+        if (location) {
+          setForm((prev) => ({
+            ...prev,
+            cep: location.cep ?? "",
+            uf: location.uf ?? "",
+            city: location.city ?? "",
+            district: location.neighborhood ?? "",
+            street: location.street ?? "",
+            number: location.number ?? "",
+          }));
+        }
+      }
+    }
+    fetchAndSetLocation();
   }, [restaurant, open]);
   const [activeTab, setActiveTab] = useState<
     "dados" | "endereco" | "restricoes"
@@ -104,7 +112,8 @@ export default function EditRestaurantDialog({
       alert("O nome do restaurante é obrigatório.");
       return;
     }
-    await onUpdateRestaurant({ ...form, id: restaurant.id });
+    const slug = generateSlug(form.name);
+    await onUpdateRestaurant({ ...form, id: restaurant.id, slug });
     onOpenChange(false);
   }
 
@@ -323,19 +332,28 @@ export default function EditRestaurantDialog({
                       type="checkbox"
                       checked={
                         Array.isArray(form.restrictions) &&
+                        typeof r.id === "number" &&
                         form.restrictions.includes(r.id)
                       }
                       onChange={(e) => {
                         setForm((prev) => {
                           const checked = e.target.checked;
                           const id = r.id;
+                          let restrictions: number[] = Array.isArray(
+                            prev.restrictions
+                          )
+                            ? prev.restrictions.filter(
+                                (v): v is number => typeof v === "number"
+                              )
+                            : [];
+                          if (typeof id === "number") {
+                            restrictions = checked
+                              ? [...restrictions, id]
+                              : restrictions.filter((rid) => rid !== id);
+                          }
                           return {
                             ...prev,
-                            restrictions: checked
-                              ? [...(prev.restrictions || []), id]
-                              : (prev.restrictions || []).filter(
-                                  (rid) => rid !== id
-                                ),
+                            restrictions,
                           };
                         });
                       }}
