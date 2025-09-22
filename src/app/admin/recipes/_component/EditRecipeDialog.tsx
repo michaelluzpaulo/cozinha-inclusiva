@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import { UploadImageAction } from "@/Actions/Storage/UploadImageAction";
+import { UpdateRecipeAction } from "@/Actions/Recipe/UpdateRecipeAction";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,14 +21,13 @@ import type { Recipe } from "@/Contracts/Recipe";
 import type { Restriction } from "@/Contracts/Restriction";
 
 type RecipeWithRestrictions = Required<Recipe> & { restrictions: number[] };
+
 interface EditRecipeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   recipe: RecipeWithRestrictions;
-  onUpdateRecipe: (recipe: RecipeWithRestrictions) => void;
+  onUpdateRecipe: () => void; // Simplificado - apenas callback para recarregar dados
 }
-
-type FormRecipe = Required<Recipe> & { restrictions: number[] };
 
 export default function EditRecipeDialog({
   open,
@@ -33,12 +35,17 @@ export default function EditRecipeDialog({
   recipe,
   onUpdateRecipe,
 }: EditRecipeDialogProps) {
-  const [form, setForm] = useState<FormRecipe>({
+  const [form, setForm] = useState<RecipeWithRestrictions>({
     id: recipe.id,
     title: recipe.title,
     description: recipe.description ?? "",
+    img: recipe.img ?? "",
     restrictions: recipe.restrictions ?? [],
   });
+  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Sincroniza o form sempre que a receita recebida mudar
   useEffect(() => {
@@ -46,14 +53,14 @@ export default function EditRecipeDialog({
       id: recipe.id,
       title: recipe.title,
       description: recipe.description ?? "",
+      img: recipe.img ?? "",
       restrictions: recipe.restrictions ?? [],
     });
   }, [recipe]);
-  const [restrictions, setRestrictions] = useState<Restriction[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchRestrictions() {
+      setLoading(true);
       try {
         const data = await ListRestrictionsAction.execute();
         setRestrictions(data);
@@ -66,10 +73,40 @@ export default function EditRecipeDialog({
     if (open) fetchRestrictions();
   }, [open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title || !form.description) return;
-    onUpdateRecipe({ ...form });
-    onOpenChange(false);
+
+    setUploading(true);
+    try {
+      // Atualizar a receita com todos os dados incluindo a imagem
+      await UpdateRecipeAction.execute(form, form.restrictions);
+
+      // Se há um arquivo selecionado, fazer upload para o Supabase
+      if (selectedFile) {
+        // let imageUrl = form.img;
+        // imageUrl = await UploadImageAction.execute(
+        //   selectedFile,
+        //   "cozinha_inclusiva",
+        //   "recipes",
+        //   `recipe-${form.id}` // Nome baseado no ID da receita
+        // );
+        // await UpdateRecipeAction.execute(
+        //   { ...form, img: imageUrl },
+        //   form.restrictions
+        // );
+      }
+
+      // Callback para recarregar dados na página pai
+      onUpdateRecipe();
+
+      setSelectedFile(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao atualizar receita:", error);
+      alert("Erro ao atualizar receita. Tente novamente.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -93,6 +130,38 @@ export default function EditRecipeDialog({
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 id="title"
               />
+            </div>
+            <div className="grid w-full gap-1">
+              <Label htmlFor="img" className="text-gray-500 pl-1">
+                Imagem da receita
+              </Label>
+              <Input
+                type="file"
+                accept="image/*"
+                id="img"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setForm({ ...form, img: event.target?.result as string });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {form.img && (
+                <div className="mt-2">
+                  <Image
+                    src={form.img}
+                    alt="Preview da receita"
+                    width={128}
+                    height={128}
+                    className="object-cover rounded border"
+                  />
+                </div>
+              )}
             </div>
             <div className="grid w-full gap-1">
               <Label className="text-gray-500 pl-1">
@@ -147,8 +216,8 @@ export default function EditRecipeDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="default" onClick={handleSave}>
-            Salvar
+          <Button variant="default" onClick={handleSave} disabled={uploading}>
+            {uploading ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>

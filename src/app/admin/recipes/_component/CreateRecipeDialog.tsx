@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import { UploadImageAction } from "@/Actions/Storage/UploadImageAction";
+import { CreateRecipeAction } from "@/Actions/Recipe/CreateRecipeAction";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,15 +23,13 @@ import type { Recipe } from "@/Contracts/Recipe";
 interface CreateRecipeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddRecipe?: (
-    recipe: { title: string; description: string },
-    restrictions: number[]
-  ) => void;
+  onAddRecipe?: () => void; // Simplificado - apenas callback para recarregar dados
 }
 
 const initStateForm = {
   title: "",
   description: "",
+  img: "",
   restrictions: [] as number[],
 };
 
@@ -40,6 +41,8 @@ export default function CreateRecipeDialog({
   const [form, setForm] = useState<typeof initStateForm>(initStateForm);
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     async function fetchRestrictions() {
@@ -56,17 +59,46 @@ export default function CreateRecipeDialog({
     if (open) fetchRestrictions();
   }, [open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title || !form.description) return;
-    onAddRecipe?.(
-      {
-        title: form.title,
-        description: form.description,
-      },
-      form.restrictions
-    );
-    setForm(initStateForm);
-    onOpenChange(false); // fecha o modal
+
+    setUploading(true);
+    try {
+      // 1. Primeiro, salvar os dados da receita sem a imagem
+      const recipeId = await CreateRecipeAction.execute(
+        {
+          title: form.title,
+          description: form.description,
+          img: "", // Inicialmente vazio
+        },
+        form.restrictions
+      );
+
+      // 2. Se há um arquivo selecionado, fazer upload e atualizar a receita
+      if (selectedFile) {
+        const imageUrl = await UploadImageAction.execute(
+          selectedFile,
+          "cozinha_inclusiva",
+          "recipes",
+          `recipe-${recipeId}` // Nome baseado no ID da receita
+        );
+
+        // 3. Atualizar a receita com a URL da imagem
+        await CreateRecipeAction.updateImage(recipeId, imageUrl);
+      }
+
+      // 4. Callback para recarregar dados na página pai
+      onAddRecipe?.();
+
+      setForm(initStateForm);
+      setSelectedFile(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao salvar receita:", error);
+      alert("Erro ao salvar receita. Tente novamente.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -90,6 +122,38 @@ export default function CreateRecipeDialog({
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 id="title"
               />
+            </div>
+            <div className="grid w-full gap-1">
+              <Label htmlFor="img" className="text-gray-500 pl-1">
+                Imagem da receita
+              </Label>
+              <Input
+                type="file"
+                accept="image/*"
+                id="img"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setForm({ ...form, img: event.target?.result as string });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {form.img && (
+                <div className="mt-2">
+                  <Image
+                    src={form.img}
+                    alt="Preview da receita"
+                    width={128}
+                    height={128}
+                    className="object-cover rounded border"
+                  />
+                </div>
+              )}
             </div>
             <div className="grid w-full gap-1">
               <Label className="text-gray-500 pl-1">
@@ -144,8 +208,8 @@ export default function CreateRecipeDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="default" onClick={handleSave}>
-            Salvar
+          <Button variant="default" onClick={handleSave} disabled={uploading}>
+            {uploading ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>

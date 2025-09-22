@@ -26,4 +26,14 @@ export class CreateRecipeAction {
     }
     return recipeId;
   }
+
+  // Método para atualizar apenas a imagem da receita
+  static async updateImage(recipeId: number, imageUrl: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("recipes")
+      .update({ img: imageUrl })
+      .eq("id", recipeId);
+    if (error) throw error;
+  }
 }
