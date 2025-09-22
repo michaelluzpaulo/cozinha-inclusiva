@@ -75,27 +75,16 @@ export default function RecipesPage() {
     setIsEditDialogOpen(true);
   }
 
-  async function handleUpdateRecipe(updated: Recipe) {
-    // Atualiza no banco e recarrega a lista
-    await UpdateRecipeAction.execute(
-      {
-        id: updated.id,
-        title: updated.title,
-        description: updated.description,
-      },
-      updated.restrictions
-    );
+  async function handleUpdateRecipe() {
+    // Recarregar a lista de receitas após atualizar
     const recipesData = await ListRecipesAction.execute();
     setRecipes(recipesData);
     setIsEditDialogOpen(false);
     setEditRecipe(null);
   }
 
-  async function handleAddRecipe(
-    recipe: { title: string; description: string },
-    restrictions: number[]
-  ) {
-    await CreateRecipeAction.execute(recipe, restrictions);
+  async function handleAddRecipe() {
+    // Recarregar a lista de receitas após criar uma nova
     const recipesData = await ListRecipesAction.execute();
     setRecipes(recipesData);
   }
@@ -203,6 +192,7 @@ export default function RecipesPage() {
             ...editRecipe,
             id: editRecipe.id ?? 0,
             description: editRecipe.description ?? "",
+            img: editRecipe.img ?? "",
           }}
           onUpdateRecipe={handleUpdateRecipe}
         />
