@@ -14,7 +14,7 @@ export interface LoginCredentials {
 // Interface para dados do client autenticado (sem senha)
 export interface AuthenticatedClient {
   id: number;
-  nome: string;
+  name: string;
   email: string;
   active: boolean;
 }
@@ -59,7 +59,7 @@ export async function validateLoginAction(
     console.log("✅ Login válido:", credentials.email);
     return {
       id: client.id,
-      nome: client.nome,
+      name: client.name,
       email: client.email,
       active: client.active,
     };
@@ -77,7 +77,7 @@ export async function getClientByIdAction(
     const [client] = await db
       .select({
         id: clients.id,
-        nome: clients.nome,
+        name: clients.name,
         email: clients.email,
         active: clients.active,
       })

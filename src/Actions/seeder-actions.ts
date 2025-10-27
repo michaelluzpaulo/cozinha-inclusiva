@@ -12,31 +12,31 @@ export async function seedClientsAction() {
 
   const clientsData = [
     {
-      nome: "Administrador",
+      name: "Administrador",
       email: "admin@cozinhainclusiva.com",
       password: await bcrypt.hash("admin123", saltRounds),
       active: true,
     },
     {
-      nome: "João Silva",
+      name: "João Silva",
       email: "joao.silva@email.com",
       password: await bcrypt.hash("senha123", saltRounds),
       active: true,
     },
     {
-      nome: "Maria Santos",
+      name: "Maria Santos",
       email: "maria.santos@email.com",
       password: await bcrypt.hash("maria456", saltRounds),
       active: true,
     },
     {
-      nome: "Pedro Oliveira",
+      name: "Pedro Oliveira",
       email: "pedro.oliveira@email.com",
       password: await bcrypt.hash("pedro789", saltRounds),
       active: false,
     },
     {
-      nome: "Ana Costa",
+      name: "Ana Costa",
       email: "ana.costa@email.com",
       password: await bcrypt.hash("ana2024", saltRounds),
       active: true,
@@ -50,13 +50,13 @@ export async function seedClientsAction() {
       .values(clientsData)
       .returning({
         id: clients.id,
-        nome: clients.nome,
+        name: clients.name,
         email: clients.email,
       });
 
     console.log(`✅ ${insertedClients.length} clients inseridos com sucesso:`);
     insertedClients.forEach((client) => {
-      console.log(`   - ${client.nome} (${client.email})`);
+      console.log(`   - ${client.name} (${client.email})`);
     });
 
     return {
@@ -80,7 +80,7 @@ export async function clearClientsAction() {
   try {
     const deletedClients = await db.delete(clients).returning({
       id: clients.id,
-      nome: clients.nome,
+      name: clients.name,
     });
 
     console.log(`✅ ${deletedClients.length} clients removidos`);

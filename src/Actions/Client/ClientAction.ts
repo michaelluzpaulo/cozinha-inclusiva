@@ -11,7 +11,7 @@ export class ClientAction {
       const clientsResult = await db
         .select({
           id: clients.id,
-          nome: clients.nome,
+          name: clients.name,
           email: clients.email,
           active: clients.active,
           created_at: clients.createdAt,
@@ -22,7 +22,8 @@ export class ClientAction {
       // Transformar para formato Client
       return clientsResult.map((client) => ({
         id: client.id,
-        nome: client.nome,
+        nome: client.name, // Mapear name do banco para nome do frontend
+        name: client.name, // Também disponibilizar como name
         email: client.email,
         password: "", // Não retornar senha
         active: client.active,
@@ -41,7 +42,7 @@ export class ClientAction {
       const [client] = await db
         .select({
           id: clients.id,
-          nome: clients.nome,
+          name: clients.name,
           email: clients.email,
           active: clients.active,
           created_at: clients.createdAt,
@@ -57,7 +58,8 @@ export class ClientAction {
 
       return {
         id: client.id,
-        nome: client.nome,
+        nome: client.name, // Mapear name do banco para nome do frontend
+        name: client.name, // Também disponibilizar como name
         email: client.email,
         password: "",
         active: client.active,
@@ -91,14 +93,14 @@ export class ClientAction {
       const [newClient] = await db
         .insert(clients)
         .values({
-          nome: clientData.nome,
+          name: clientData.nome, // Usar nome recebido do frontend e salvar como name no banco
           email: clientData.email,
           password: hashedPassword,
           active: clientData.active ?? true,
         })
         .returning({
           id: clients.id,
-          nome: clients.nome,
+          name: clients.name,
           email: clients.email,
           active: clients.active,
           created_at: clients.createdAt,
@@ -107,7 +109,8 @@ export class ClientAction {
 
       return {
         id: newClient.id,
-        nome: newClient.nome,
+        nome: newClient.name, // Mapear name do banco para nome do frontend
+        name: newClient.name, // Também disponibilizar como name
         email: newClient.email,
         password: "",
         active: newClient.active,
@@ -135,7 +138,7 @@ export class ClientAction {
         updatedAt: new Date(),
       };
 
-      if (clientData.nome) updateData.nome = clientData.nome;
+      if (clientData.nome) updateData.name = clientData.nome; // Mapear nome do frontend para name no banco
       if (clientData.email) updateData.email = clientData.email;
       if (clientData.active !== undefined)
         updateData.active = clientData.active;
@@ -151,7 +154,7 @@ export class ClientAction {
         .where(eq(clients.id, id))
         .returning({
           id: clients.id,
-          nome: clients.nome,
+          name: clients.name,
           email: clients.email,
           active: clients.active,
           created_at: clients.createdAt,
@@ -164,7 +167,8 @@ export class ClientAction {
 
       return {
         id: updatedClient.id,
-        nome: updatedClient.nome,
+        nome: updatedClient.name, // Mapear name do banco para nome do frontend
+        name: updatedClient.name, // Também disponibilizar como name
         email: updatedClient.email,
         password: "",
         active: updatedClient.active,
@@ -230,7 +234,7 @@ export class ClientAction {
         .where(eq(clients.id, id))
         .returning({
           id: clients.id,
-          nome: clients.nome,
+          name: clients.name,
           email: clients.email,
           active: clients.active,
           created_at: clients.createdAt,
@@ -243,7 +247,8 @@ export class ClientAction {
 
       return {
         id: updatedClient.id,
-        nome: updatedClient.nome,
+        nome: updatedClient.name, // Mapear name do banco para nome do frontend
+        name: updatedClient.name, // Também disponibilizar como name
         email: updatedClient.email,
         password: "",
         active: updatedClient.active,

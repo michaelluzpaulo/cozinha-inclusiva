@@ -28,7 +28,8 @@ export class AuthAction {
         // Converter para formato Client esperado pela aplicação
         return {
           id: authenticatedClient.id,
-          nome: authenticatedClient.nome,
+          nome: authenticatedClient.name, // Mapear name do backend para nome do frontend
+          name: authenticatedClient.name, // Também disponibilizar como name
           email: authenticatedClient.email,
           password: "", // Não retornar senha por segurança
           active: authenticatedClient.active,
@@ -53,7 +54,8 @@ export class AuthAction {
         if (authenticatedClient) {
           return {
             id: authenticatedClient.id,
-            nome: authenticatedClient.nome,
+            nome: authenticatedClient.name, // Mapear name do backend para nome do frontend
+            name: authenticatedClient.name, // Também disponibilizar como name
             email: authenticatedClient.email,
             password: "",
             active: authenticatedClient.active,
@@ -77,7 +79,8 @@ export class AuthAction {
       if (client) {
         return {
           id: client.id,
-          nome: client.nome,
+          nome: client.name, // Mapear name do backend para nome do frontend
+          name: client.name, // Também disponibilizar como name
           email: client.email,
           password: "",
           active: client.active,
@@ -94,7 +97,8 @@ export class AuthAction {
         if (client) {
           return {
             id: client.id,
-            nome: client.nome,
+            nome: client.name, // Mapear name do backend para nome do frontend
+            name: client.name, // Também disponibilizar como name
             email: client.email,
             password: "",
             active: client.active,

@@ -12,7 +12,7 @@ export interface LoginCredentials {
 // Interface para dados do client autenticado
 export interface AuthenticatedClient {
   id: number;
-  nome: string;
+  name: string;
   email: string;
   active: boolean;
 }
@@ -55,7 +55,7 @@ export async function validateLogin(
     console.log("✅ Login válido:", credentials.email);
     return {
       id: client.id,
-      nome: client.nome,
+      name: client.name,
       email: client.email,
       active: client.active,
     };
@@ -73,7 +73,7 @@ export async function getClientById(
     const [client] = await db
       .select({
         id: clients.id,
-        nome: clients.nome,
+        name: clients.name,
         email: clients.email,
         active: clients.active,
       })
@@ -100,7 +100,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 // Função para criar novo client
 export async function createClient(clientData: {
-  nome: string;
+  name: string;
   email: string;
   password: string;
   active?: boolean;
@@ -111,14 +111,14 @@ export async function createClient(clientData: {
     const [newClient] = await db
       .insert(clients)
       .values({
-        nome: clientData.nome,
+        name: clientData.name,
         email: clientData.email,
         password: hashedPassword,
         active: clientData.active ?? true,
       })
       .returning({
         id: clients.id,
-        nome: clients.nome,
+        name: clients.name,
         email: clients.email,
         active: clients.active,
       });

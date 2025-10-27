@@ -12,7 +12,7 @@ export interface LoginCredentials {
 // Interface para dados do client autenticado (sem senha)
 export interface AuthenticatedClient {
   id: number;
-  nome: string;
+  name: string;
   email: string;
   active: boolean;
 }
@@ -58,7 +58,7 @@ export async function validateLoginActionFallback(
     console.log("✅ Login válido (fallback):", credentials.email);
     return {
       id: client.id,
-      nome: client.nome,
+      name: client.name, // Usar name do banco
       email: client.email,
       active: client.active,
     };
@@ -77,7 +77,7 @@ export async function getClientByIdActionFallback(
 
     const { data: client, error } = await supabase
       .from("clients")
-      .select("id, nome, email, active")
+      .select("id, name, email, active")
       .eq("id", id)
       .eq("active", true)
       .single();
