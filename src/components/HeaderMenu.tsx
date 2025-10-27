@@ -56,7 +56,7 @@ export default function HeaderMenu() {
 
         {/* Área Restrita */}
         <Link
-          href="/"
+          href="/area-restrita/dashboard"
           className="hidden md:block bg-green-600 px-4 py-2 rounded hover:bg-green-800 transition font-bold text-md"
         >
           Área Restrita
@@ -84,7 +84,7 @@ export default function HeaderMenu() {
             Contato
           </Link>
           <Link
-            href="/"
+            href="/area-restrita/dashboard"
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800 transition"
             onClick={() => setMenuOpen(false)}
           >
