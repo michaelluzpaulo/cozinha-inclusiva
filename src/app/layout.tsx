@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import HydrationWrapper from "@/components/HydrationWrapper";
 
 import { Roboto } from "next/font/google";
 const roboto = Roboto({ subsets: ["latin"], variable: "--font-roboto" });
-
-
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +18,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={roboto.className}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased" suppressHydrationWarning={true}>
+        <HydrationWrapper>
+          <AuthProvider>{children}</AuthProvider>
+        </HydrationWrapper>
+      </body>
     </html>
   );
 }
