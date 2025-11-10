@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 
 export default function HeaderMenu() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const isHome = usePathname() === "/";
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   return (
     <header
       className={`${
@@ -23,7 +24,7 @@ export default function HeaderMenu() {
           <Link
             href="/"
             className={`relative after:block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-white after:transition-all hover:after:w-full ${
-              usePathname() === "/" ? "after:w-full" : "after:w-0"
+              pathname === "/" ? "after:w-full" : "after:w-0"
             }`}
           >
             Home
@@ -31,23 +32,43 @@ export default function HeaderMenu() {
           <Link
             href="/restaurantes"
             className={`relative after:block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-white after:transition-all hover:after:w-full ${
-              usePathname() === "/restaurantes" ? "after:w-full" : "after:w-0"
+              pathname === "/restaurantes" ? "after:w-full" : "after:w-0"
             }`}
           >
             Restaurantes
           </Link>
-          <Link
-            href="/receitas"
-            className={`relative after:block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-white after:transition-all hover:after:w-full ${
-              usePathname() === "/receitas" ? "after:w-full" : "after:w-0"
-            }`}
-          >
-            Receitas
-          </Link>
+          <div className="relative group">
+            <Link
+              href="/receitas"
+              className={`relative after:block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-white after:transition-all hover:after:w-full ${
+                pathname === "/receitas" ||
+                pathname === "/area-restrita/receitas/favoritas"
+                  ? "after:w-full"
+                  : "after:w-0"
+              }`}
+            >
+              Receitas
+            </Link>
+            {/* Dropdown para receitas favoritas */}
+            <div className="absolute top-full left-0 mt-2 bg-white text-black rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 min-w-48 z-50">
+              <Link
+                href="/receitas"
+                className="block px-4 py-2 hover:bg-gray-100 transition-colors"
+              >
+                📋 Todas as Receitas
+              </Link>
+              <Link
+                href="/area-restrita/receitas/favoritas"
+                className="block px-4 py-2 hover:bg-gray-100 transition-colors"
+              >
+                ❤️ Minhas Favoritas
+              </Link>
+            </div>
+          </div>
           <Link
             href="/contato"
             className={`relative after:block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-white after:transition-all hover:after:w-full ${
-              usePathname() === "/contato" ? "after:w-full" : "after:w-0"
+              pathname === "/contato" ? "after:w-full" : "after:w-0"
             }`}
           >
             Contato

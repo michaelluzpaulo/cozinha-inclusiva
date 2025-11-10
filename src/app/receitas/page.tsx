@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import HeaderMenu from "@/components/HeaderMenu";
 import Image from "next/image";
 import Footer from "@/components/Footer";
@@ -8,14 +9,21 @@ import { FaHeart, FaSearch, FaStar, FaFilter } from "react-icons/fa";
 import Breadcrumb from "@/components/Breadcrumb";
 import { ListRecipesAction } from "@/Actions/Recipe/ListRecipesAction";
 import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
+import { toggleFavoriteRecipeAction } from "@/Actions/Client/toggleFavoriteRecipeAction";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 const DEFAULT_IMG = "/prato01.jpg";
 
 export default function Page() {
+  const { client } = useAuth();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const router = useRouter();
   const [allCards, setAllCards] = useState<any[]>([]);
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [restrictions, setRestrictions] = useState<any[]>([]);
+  const [favoriteLoading, setFavoriteLoading] = useState<number | null>(null);
 
   // Filtros
   const [searchName, setSearchName] = useState("");
@@ -36,7 +44,6 @@ export default function Page() {
         const recipesWithDefaults = recipesData.map((r: any) => ({
           ...r,
           img: r.img || DEFAULT_IMG,
-          favorite: false,
           restrictions: r.restrictions.map((res: any) => {
             // Suporta tanto objeto { id: X } quanto apenas ID numérico
             const resId = typeof res === "object" ? res.id : res;
@@ -80,17 +87,38 @@ export default function Page() {
     setCards(filteredCards);
   }, [allCards, searchName, selectedRestrictions]);
 
-  const toggleFavorite = (id: number) => {
-    setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === id ? { ...card, favorite: !card.favorite } : card
-      )
-    );
-    setAllCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === id ? { ...card, favorite: !card.favorite } : card
-      )
-    );
+  const handleToggleFavorite = async (recipeId: number) => {
+    // Verificar se usuário está logado
+    if (!client?.id) {
+      // Redirecionar para página de login
+      router.push("/area-restrita/signin");
+      return;
+    }
+
+    setFavoriteLoading(recipeId);
+
+    try {
+      const result = await toggleFavoriteRecipeAction(client.id, recipeId);
+
+      if (result.success) {
+        // Atualizar estado global de favoritos
+        if (result.isFavorited) {
+          addFavorite(recipeId);
+        } else {
+          removeFavorite(recipeId);
+        }
+
+        // Mostrar feedback visual (você pode implementar toast aqui)
+        console.log(result.message);
+      } else {
+        console.error("Erro:", result.message);
+        // Aqui você pode mostrar um toast de erro
+      }
+    } catch (error) {
+      console.error("Erro ao processar favorito:", error);
+    } finally {
+      setFavoriteLoading(null);
+    }
   };
 
   const handleRestrictionChange = (restrictionId: number, checked: boolean) => {
@@ -217,10 +245,14 @@ export default function Page() {
                       className="w-full h-28 lg:h-40 object-cover rounded-md"
                     />
                     <FaHeart
-                      onClick={() => toggleFavorite(card.id)}
+                      onClick={() => handleToggleFavorite(card.id)}
                       className={`absolute top-2 right-2 text-xl cursor-pointer transition-colors ${
-                        card.favorite ? "text-red-500" : "text-gray-300"
-                      }`}
+                        favoriteLoading === card.id
+                          ? "text-yellow-500"
+                          : isFavorite(card.id)
+                          ? "text-red-500"
+                          : "text-gray-300"
+                      } ${favoriteLoading === card.id ? "animate-pulse" : ""}`}
                     />
                   </div>
                   <h3 className="text-lg font-semibold mt-2">{card.title}</h3>

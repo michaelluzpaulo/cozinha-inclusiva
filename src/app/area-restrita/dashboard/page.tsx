@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import HeaderMenu from "@/components/HeaderMenu";
@@ -94,9 +95,12 @@ function DashboardContent() {
                 <p className="text-sm text-gray-600">
                   Gerencie suas receitas favoritas
                 </p>
-                <button className="mt-2 text-green-600 hover:text-green-700 text-sm font-medium">
+                <Link
+                  href="/area-restrita/receitas/favoritas"
+                  className="mt-2 text-green-600 hover:text-green-700 text-sm font-medium inline-block"
+                >
                   Ver Receitas →
-                </button>
+                </Link>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg border">

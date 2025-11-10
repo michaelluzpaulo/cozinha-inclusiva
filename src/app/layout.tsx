@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import HydrationWrapper from "@/components/HydrationWrapper";
 
 import { Roboto } from "next/font/google";
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" className={roboto.className}>
       <body className="antialiased" suppressHydrationWarning={true}>
         <HydrationWrapper>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <FavoritesProvider>{children}</FavoritesProvider>
+          </AuthProvider>
         </HydrationWrapper>
       </body>
     </html>
