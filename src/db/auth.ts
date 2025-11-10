@@ -43,7 +43,7 @@ export async function validateLogin(
     // Verificar senha usando bcrypt
     const isPasswordValid = await bcrypt.compare(
       credentials.password,
-      client.password
+      client.password || ""
     );
 
     if (!isPasswordValid) {
@@ -55,9 +55,9 @@ export async function validateLogin(
     console.log("✅ Login válido:", credentials.email);
     return {
       id: client.id,
-      name: client.name,
-      email: client.email,
-      active: client.active,
+      name: client.name || "",
+      email: client.email || "",
+      active: client.active ?? false,
     };
   } catch (error) {
     console.error("❌ Erro na validação de login:", error);
@@ -85,7 +85,12 @@ export async function getClientById(
       return null;
     }
 
-    return client;
+    return {
+      id: client.id,
+      name: client.name || "",
+      email: client.email || "",
+      active: client.active ?? false,
+    };
   } catch (error) {
     console.error("❌ Erro ao buscar client:", error);
     return null;
@@ -123,7 +128,12 @@ export async function createClient(clientData: {
         active: clients.active,
       });
 
-    return newClient;
+    return {
+      id: newClient.id,
+      name: newClient.name || "",
+      email: newClient.email || "",
+      active: newClient.active ?? false,
+    };
   } catch (error) {
     console.error("❌ Erro ao criar client:", error);
     return null;

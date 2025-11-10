@@ -17,7 +17,6 @@ export async function getRecipesWithRestrictions() {
       title: recipes.title,
       description: recipes.description,
       img: recipes.img,
-      createdAt: recipes.createdAt,
       restriction: {
         id: restrictions.id,
         name: restrictions.name,
@@ -63,7 +62,6 @@ export async function getRestaurantsWithFilters(filters: {
     .select({
       id: restaurants.id,
       name: restaurants.name,
-      address: restaurants.address,
       phone: restaurants.phone,
       email: restaurants.email,
       img: restaurants.img,
@@ -97,7 +95,7 @@ export async function createRecipeWithRestrictions(
     if (restrictionIds.length > 0) {
       await tx.insert(recipeRestriction).values(
         restrictionIds.map((restrictionId) => ({
-          recipeId: newRecipe.id,
+          recipeId: Number(newRecipe.id),
           restrictionId,
         }))
       );

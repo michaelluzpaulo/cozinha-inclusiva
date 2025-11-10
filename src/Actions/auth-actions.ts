@@ -47,7 +47,7 @@ export async function validateLoginAction(
     // Verificar senha usando bcrypt
     const isPasswordValid = await bcrypt.compare(
       credentials.password,
-      client.password
+      client.password || ""
     );
 
     if (!isPasswordValid) {
@@ -59,9 +59,9 @@ export async function validateLoginAction(
     console.log("✅ Login válido:", credentials.email);
     return {
       id: client.id,
-      name: client.name,
-      email: client.email,
-      active: client.active,
+      name: client.name || "",
+      email: client.email || "",
+      active: client.active ?? false,
     };
   } catch (error) {
     console.error("❌ Erro na validação de login:", error);
@@ -89,7 +89,12 @@ export async function getClientByIdAction(
       return null;
     }
 
-    return client;
+    return {
+      id: client.id,
+      name: client.name || "",
+      email: client.email || "",
+      active: client.active ?? false,
+    };
   } catch (error) {
     console.error("❌ Erro ao buscar client:", error);
     return null;
@@ -134,7 +139,7 @@ export async function resetPasswordAction(
       .update(clients)
       .set({
         password: hashedPassword,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(clients.email, email))
       .returning({ id: clients.id });

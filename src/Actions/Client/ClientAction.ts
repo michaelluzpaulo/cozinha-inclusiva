@@ -22,13 +22,13 @@ export class ClientAction {
       // Transformar para formato Client
       return clientsResult.map((client) => ({
         id: client.id,
-        nome: client.name, // Mapear name do banco para nome do frontend
-        name: client.name, // Também disponibilizar como name
-        email: client.email,
+        nome: client.name || "", // Mapear name do banco para nome do frontend, garantindo string
+        name: client.name || "", // Também disponibilizar como name, garantindo string
+        email: client.email || "", // Garantindo string
         password: "", // Não retornar senha
-        active: client.active,
-        created_at: client.created_at?.toISOString(),
-        updated_at: client.updated_at?.toISOString(),
+        active: client.active ?? false, // Garantindo boolean
+        created_at: client.created_at || "",
+        updated_at: client.updated_at || "",
       }));
     } catch (error) {
       console.error("❌ Erro ao buscar clients:", error);
@@ -58,13 +58,13 @@ export class ClientAction {
 
       return {
         id: client.id,
-        nome: client.name, // Mapear name do banco para nome do frontend
-        name: client.name, // Também disponibilizar como name
-        email: client.email,
+        nome: client.name || "", // Mapear name do banco para nome do frontend, garantindo string
+        name: client.name || "", // Também disponibilizar como name, garantindo string
+        email: client.email || "", // Garantindo string
         password: "",
-        active: client.active,
-        created_at: client.created_at?.toISOString(),
-        updated_at: client.updated_at?.toISOString(),
+        active: client.active ?? false, // Garantindo boolean
+        created_at: client.created_at || "",
+        updated_at: client.updated_at || "",
       };
     } catch (error) {
       console.error("❌ Erro ao buscar client:", error);
@@ -109,13 +109,13 @@ export class ClientAction {
 
       return {
         id: newClient.id,
-        nome: newClient.name, // Mapear name do banco para nome do frontend
-        name: newClient.name, // Também disponibilizar como name
-        email: newClient.email,
+        nome: newClient.name || "", // Mapear name do banco para nome do frontend, garantindo string
+        name: newClient.name || "", // Também disponibilizar como name, garantindo string
+        email: newClient.email || "", // Garantindo string
         password: "",
-        active: newClient.active,
-        created_at: newClient.created_at?.toISOString(),
-        updated_at: newClient.updated_at?.toISOString(),
+        active: newClient.active ?? false, // Garantindo boolean
+        created_at: newClient.created_at || "",
+        updated_at: newClient.updated_at || "",
       };
     } catch (error) {
       console.error("❌ Erro ao criar client:", error);
@@ -135,7 +135,7 @@ export class ClientAction {
   ): Promise<Client | null> {
     try {
       const updateData: any = {
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       };
 
       if (clientData.nome) updateData.name = clientData.nome; // Mapear nome do frontend para name no banco
@@ -167,13 +167,13 @@ export class ClientAction {
 
       return {
         id: updatedClient.id,
-        nome: updatedClient.name, // Mapear name do banco para nome do frontend
-        name: updatedClient.name, // Também disponibilizar como name
-        email: updatedClient.email,
+        nome: updatedClient.name || "", // Mapear name do banco para nome do frontend, garantindo string
+        name: updatedClient.name || "", // Também disponibilizar como name, garantindo string
+        email: updatedClient.email || "", // Garantindo string
         password: "",
-        active: updatedClient.active,
-        created_at: updatedClient.created_at?.toISOString(),
-        updated_at: updatedClient.updated_at?.toISOString(),
+        active: updatedClient.active ?? false, // Garantindo boolean
+        created_at: updatedClient.created_at || "",
+        updated_at: updatedClient.updated_at || "",
       };
     } catch (error) {
       console.error("❌ Erro ao atualizar client:", error);
@@ -188,7 +188,7 @@ export class ClientAction {
         .update(clients)
         .set({
           active: false,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(clients.id, id))
         .returning({ id: clients.id });
@@ -229,7 +229,7 @@ export class ClientAction {
         .update(clients)
         .set({
           active: !currentClient.active,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(clients.id, id))
         .returning({
@@ -247,13 +247,13 @@ export class ClientAction {
 
       return {
         id: updatedClient.id,
-        nome: updatedClient.name, // Mapear name do banco para nome do frontend
-        name: updatedClient.name, // Também disponibilizar como name
-        email: updatedClient.email,
+        nome: updatedClient.name || "", // Mapear name do banco para nome do frontend, garantindo string
+        name: updatedClient.name || "", // Também disponibilizar como name, garantindo string
+        email: updatedClient.email || "", // Garantindo string
         password: "",
-        active: updatedClient.active,
-        created_at: updatedClient.created_at?.toISOString(),
-        updated_at: updatedClient.updated_at?.toISOString(),
+        active: updatedClient.active ?? false, // Garantindo boolean
+        created_at: updatedClient.created_at || "",
+        updated_at: updatedClient.updated_at || "",
       };
     } catch (error) {
       console.error("❌ Erro ao alternar status do client:", error);
