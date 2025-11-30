@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import ImageUpload from "@/components/ImageUpload";
 
 export interface Restaurant {
   id: number;
@@ -35,6 +36,7 @@ export interface Restaurant {
   district: string;
   street: string;
   number: string;
+  img?: string;
   restrictions?: number[];
   slug: string;
 }
@@ -57,6 +59,8 @@ export default function EditRestaurantDialog({
   // Sincroniza form ao abrir novo restaurante para edição e busca endereço
   useEffect(() => {
     async function fetchAndSetLocation() {
+      console.log("🔄 EditDialog useEffect - Restaurant recebido:", restaurant);
+      console.log("🔄 EditDialog useEffect - Restaurant.img:", restaurant.img);
       setForm(restaurant);
       if (restaurant.id) {
         const location =
@@ -112,14 +116,27 @@ export default function EditRestaurantDialog({
       alert("O nome do restaurante é obrigatório.");
       return;
     }
-    const slug = generateSlug(form.name);
-    await onUpdateRestaurant({ ...form, id: restaurant.id, slug });
+
+    console.log("💾 Form data antes do save (edit restaurant):", form);
+    console.log("💾 Especificamente o campo img:", form.img);
+
+    const dataToSave = {
+      ...form,
+      id: restaurant.id,
+      slug: generateSlug(form.name),
+    };
+    console.log(
+      "💾 Dados que serão enviados para onUpdateRestaurant:",
+      dataToSave
+    );
+
+    await onUpdateRestaurant(dataToSave);
     onOpenChange(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[950px]">
+      <DialogContent className="sm:max-w-[950px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Restaurante</DialogTitle>
           <DialogDescription>
@@ -238,6 +255,37 @@ export default function EditRestaurantDialog({
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
+              />
+            </div>
+
+            <div className="grid w-full gap-1">
+              <Label className="text-gray-500 pl-1">
+                Imagem do restaurante
+              </Label>
+              <ImageUpload
+                currentImage={form.img || ""}
+                key={`image-${restaurant.id}-${form.img || "no-image"}`} // Força re-render quando img muda
+                onUpload={async (file: File) => {
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const response = await fetch("/api/upload/restaurant", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  if (!response.ok) throw new Error("Erro no upload");
+                  const data = await response.json();
+                  return data.imageUrl;
+                }}
+                onImageChange={(imageUrl) => {
+                  console.log(
+                    "🖼️ ImageUpload onChange - URL recebida:",
+                    imageUrl
+                  );
+                  const newForm = { ...form, img: imageUrl || "" };
+                  console.log("🖼️ Atualizando form com nova imagem:", newForm);
+                  setForm(newForm);
+                }}
+                accept="image/*"
               />
             </div>
           </div>

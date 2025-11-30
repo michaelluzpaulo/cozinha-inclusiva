@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, restaurants, restaurantLocations, roles, recipes, recipeRestriction, restrictions, restaurantRestriction } from "./schema";
+import { users, restaurants, restaurantLocations, roles, recipes, recipeRestriction, restrictions, restaurantRestriction, clients, clientRecipeFavorites } from "./schema";
 
 export const restaurantsRelations = relations(restaurants, ({one, many}) => ({
 	user: one(users, {
@@ -42,6 +42,7 @@ export const recipeRestrictionRelations = relations(recipeRestriction, ({one}) =
 
 export const recipesRelations = relations(recipes, ({many}) => ({
 	recipeRestrictions: many(recipeRestriction),
+	clientRecipeFavorites: many(clientRecipeFavorites),
 }));
 
 export const restrictionsRelations = relations(restrictions, ({many}) => ({
@@ -58,4 +59,19 @@ export const restaurantRestrictionRelations = relations(restaurantRestriction, (
 		fields: [restaurantRestriction.restrictionId],
 		references: [restrictions.id]
 	}),
+}));
+
+export const clientRecipeFavoritesRelations = relations(clientRecipeFavorites, ({one}) => ({
+	client: one(clients, {
+		fields: [clientRecipeFavorites.clientId],
+		references: [clients.id]
+	}),
+	recipe: one(recipes, {
+		fields: [clientRecipeFavorites.recipeId],
+		references: [recipes.id]
+	}),
+}));
+
+export const clientsRelations = relations(clients, ({many}) => ({
+	clientRecipeFavorites: many(clientRecipeFavorites),
 }));

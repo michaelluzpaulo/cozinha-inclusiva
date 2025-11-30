@@ -1,0 +1,197 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { User } from "@/Contracts/User";
+
+interface Role {
+  id: number;
+  name: string;
+}
+
+interface EditUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: User | null;
+  onUserUpdated?: () => void;
+}
+
+export default function EditUserDialog({
+  open,
+  onOpenChange,
+  user,
+  onUserUpdated,
+}: EditUserDialogProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [roleId, setRoleId] = useState<number>(0);
+  const [active, setActive] = useState(true);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (open && user) {
+      setName(user.name);
+      setEmail(user.email);
+      setPassword(""); // Não preencher senha por segurança
+      setRoleId(user.role_id);
+      setActive(user.active ?? true);
+      loadRoles();
+    }
+  }, [open, user]);
+
+  async function loadRoles() {
+    try {
+      const response = await fetch("/api/admin/roles");
+      if (!response.ok) throw new Error("Erro ao buscar roles");
+
+      const data = await response.json();
+      setRoles(data.roles);
+    } catch (error) {
+      console.error("Erro ao carregar roles:", error);
+    }
+  }
+
+  async function handleSave() {
+    if (!name || !email || !roleId || !user?.id) {
+      setError("Nome, email e role são obrigatórios");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const updateData: any = {
+        id: user.id,
+        name,
+        email,
+        roleId,
+        active,
+      };
+
+      // Só incluir senha se foi fornecida
+      if (password.trim()) {
+        updateData.password = password;
+      }
+
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erro ao atualizar usuário");
+      }
+
+      onUserUpdated?.();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao atualizar usuário:", error);
+      setError(
+        error instanceof Error ? error.message : "Erro ao atualizar usuário"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Usuário</DialogTitle>
+          <DialogDescription>
+            Altere os dados do usuário abaixo.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {error && (
+            <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
+              {error}
+            </div>
+          )}
+
+          <Input
+            placeholder="Nome completo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isLoading}
+          />
+
+          <Input
+            placeholder="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
+
+          <Input
+            placeholder="Nova senha (deixe em branco para manter a atual)"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+          />
+
+          <select
+            value={roleId}
+            onChange={(e) => setRoleId(Number(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            disabled={isLoading}
+          >
+            <option value={0}>Selecione uma role</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="active"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              disabled={isLoading}
+            />
+            <label htmlFor="active" className="text-sm">
+              Usuário ativo
+            </label>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
+          <Button variant="default" onClick={handleSave} disabled={isLoading}>
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

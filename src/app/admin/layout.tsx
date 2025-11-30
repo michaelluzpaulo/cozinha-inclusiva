@@ -9,7 +9,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const username = "admin@admin.com";
+  const username = "admin@gmail.com";
 
   const menuItems = [
     { label: "Dashboard", href: "/admin/dashboard" },
@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   function handleLogout() {
-    window.location.href = "/login";
+    window.location.href = "/signin";
   }
 
   return (

@@ -23,6 +23,7 @@ import { ListRestaurantRestrictionsAction } from "@/Actions/RestaurantRestrictio
 import { CreateRestaurantAction } from "@/Actions/Restaurant/CreateRestaurantAction";
 import { UpdateRestaurantAction } from "@/Actions/Restaurant/UpdateRestaurantAction";
 import { UpdateRestaurantLocationAction } from "@/Actions/RestaurantLocation/UpdateRestaurantLocationAction";
+import { UpdateRestaurantRestrictionsAction } from "@/Actions/Restaurant/UpdateRestaurantRestrictionsAction";
 import { CreateRestaurantLocationAction } from "@/Actions/RestaurantLocation/CreateRestaurantLocationAction";
 import { GetRestaurantLocationByRestaurantIdAction } from "@/Actions/RestaurantLocation/GetRestaurantLocationByRestaurantIdAction";
 import { UpdateRestaurantRestrictionAction } from "@/Actions/RestaurantRestriction/UpdateRestaurantRestrictionAction";
@@ -65,6 +66,7 @@ export default function RestaurantsPage() {
             email: r.email ?? "",
             site: r.site ?? "",
             description: r.description ?? "",
+            img: r.img ?? "",
             cep: r.cep ?? "",
             uf: r.uf ?? "",
             city: r.city ?? "",
@@ -121,6 +123,8 @@ export default function RestaurantsPage() {
 
   async function handleUpdateRestaurant(updated: AdminRestaurant) {
     try {
+      console.log("🔧 handleUpdateRestaurant - Dados recebidos:", updated);
+
       // Atualiza restaurante (campos principais)
       await UpdateRestaurantAction.execute(updated.id, {
         name: updated.name,
@@ -129,7 +133,14 @@ export default function RestaurantsPage() {
         email: updated.email,
         site: updated.site,
         description: updated.description,
+        img: updated.img,
       });
+
+      // Atualiza restrictions do restaurante
+      await UpdateRestaurantRestrictionsAction.execute(
+        updated.id,
+        updated.restrictions || []
+      );
 
       // Atualiza ou cria endereço (restaurant_locations)
       const location = await GetRestaurantLocationByRestaurantIdAction.execute(
@@ -188,6 +199,7 @@ export default function RestaurantsPage() {
         email: r.email ?? "",
         site: r.site ?? "",
         description: r.description ?? "",
+        img: r.img ?? "",
         cep: r.cep ?? "",
         uf: r.uf ?? "",
         city: r.city ?? "",
@@ -317,8 +329,7 @@ export default function RestaurantsPage() {
       <CreateRestaurantDialog
         open={isCreateRestaurantDialogOpen}
         onOpenChange={setIsCreateRestaurantDialogOpen}
-        onAddRestaurant={async (form) => {
-          await CreateRestaurantAction.execute(form);
+        onAddRestaurant={async () => {
           await reloadRestaurantsAndRestrictions();
         }}
       />

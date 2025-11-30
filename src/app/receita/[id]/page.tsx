@@ -1,8 +1,11 @@
-"use client";
 import HeaderMenu from "@/components/HeaderMenu";
 import Image from "next/image";
 import Footer from "@/components/Footer";
 import Breadcrumb from "@/components/Breadcrumb";
+import { notFound } from "next/navigation";
+import { FindRecipeAction, Recipe } from "@/Actions/Recipe/FindRecipeAction";
+import { GetRecipeFavoritesAction } from "@/Actions/Recipe/GetRecipeFavoritesAction";
+import { FaHeart } from "react-icons/fa";
 
 const receita = {
   id: 1,
@@ -12,7 +15,34 @@ const receita = {
   type: "Vegano",
 };
 
-export default function Page() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+interface RecipeWithStats extends Recipe {
+  favoritesCount: number;
+}
+
+async function getRecipeWithStats(id: string): Promise<RecipeWithStats | null> {
+  try {
+    const recipe = await FindRecipeAction.execute(Number(id));
+    if (!recipe) return null;
+
+    const favoritesCount = await GetRecipeFavoritesAction.execute(recipe.id);
+    return { ...recipe, favoritesCount };
+  } catch (error) {
+    console.error("Erro ao buscar receita:", error);
+    return null;
+  }
+}
+
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
+  const recipeData = await getRecipeWithStats(id);
+
+  if (!recipeData) {
+    notFound();
+  }
   return (
     <>
       <HeaderMenu />
@@ -24,16 +54,22 @@ export default function Page() {
       />
       <main className="flex flex-col gap-4 mt-8 mb-8 mx-auto">
         <section className="containerBox">
-          <h1 className="text-3xl font-bold mb-2">{receita.title}</h1>
-          <div className="text-black font-bold text-[12px] mt-1 mb-2">
-            {receita.type}
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{recipeData.title}</h1>
+            </div>
+            <div className="flex items-center gap-2 text-red-500">
+              <FaHeart className="text-xl" />
+              <span className="font-semibold">{recipeData.favoritesCount}</span>
+              <span className="text-sm text-gray-600">curtidas</span>
+            </div>
           </div>
           <div>
             {/* Imagem flutuando só no desktop */}
             <div className="md:float-left md:w-[500px] md:mr-6 md:mb-2">
               <Image
-                src={receita.img}
-                alt={receita.title}
+                src={recipeData.img || "/prato01.jpg"}
+                alt={recipeData.title}
                 width={500}
                 height={300}
                 className="w-full h-auto object-cover rounded-md"
@@ -42,7 +78,7 @@ export default function Page() {
 
             {/* Texto ÚNICO que flui ao lado e depois abaixo em largura total */}
             <p className="text-gray-700 leading-relaxed text-justify">
-              {receita.text}
+              {recipeData.description || "Receita deliciosa e cheia de sabor."}
             </p>
 
             {/* Evita que o conteúdo seguinte “suba” ao lado da imagem flutuada */}

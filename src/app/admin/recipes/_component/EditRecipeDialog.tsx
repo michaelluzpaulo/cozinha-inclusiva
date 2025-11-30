@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { ListRestrictionsAction } from "@/Actions/Restriction/ListRestrictionsAction";
-import { UploadImageAction } from "@/Actions/Storage/UploadImageAction";
 import { UpdateRecipeAction } from "@/Actions/Recipe/UpdateRecipeAction";
+import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -45,7 +44,6 @@ export default function EditRecipeDialog({
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Sincroniza o form sempre que a receita recebida mudar
   useEffect(() => {
@@ -78,28 +76,8 @@ export default function EditRecipeDialog({
 
     setUploading(true);
     try {
-      // Atualizar a receita com todos os dados incluindo a imagem
       await UpdateRecipeAction.execute(form, form.restrictions);
-
-      // Se há um arquivo selecionado, fazer upload para o Supabase
-      if (selectedFile) {
-        // let imageUrl = form.img;
-        // imageUrl = await UploadImageAction.execute(
-        //   selectedFile,
-        //   "cozinha_inclusiva",
-        //   "recipes",
-        //   `recipe-${form.id}` // Nome baseado no ID da receita
-        // );
-        // await UpdateRecipeAction.execute(
-        //   { ...form, img: imageUrl },
-        //   form.restrictions
-        // );
-      }
-
-      // Callback para recarregar dados na página pai
       onUpdateRecipe();
-
-      setSelectedFile(null);
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao atualizar receita:", error);
@@ -111,7 +89,7 @@ export default function EditRecipeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px]">
+      <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Receita</DialogTitle>
           <DialogDescription>
@@ -132,36 +110,25 @@ export default function EditRecipeDialog({
               />
             </div>
             <div className="grid w-full gap-1">
-              <Label htmlFor="img" className="text-gray-500 pl-1">
-                Imagem da receita
-              </Label>
-              <Input
-                type="file"
-                accept="image/*"
-                id="img"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setSelectedFile(file);
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      setForm({ ...form, img: event.target?.result as string });
-                    };
-                    reader.readAsDataURL(file);
-                  }
+              <Label className="text-gray-500 pl-1">Imagem da receita</Label>
+              <ImageUpload
+                currentImage={form.img}
+                onUpload={async (file: File) => {
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const response = await fetch("/api/upload/recipe", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  if (!response.ok) throw new Error("Erro no upload");
+                  const data = await response.json();
+                  return data.imageUrl;
                 }}
+                onImageChange={(imageUrl) =>
+                  setForm({ ...form, img: imageUrl || "" })
+                }
+                accept="image/*"
               />
-              {form.img && (
-                <div className="mt-2">
-                  <Image
-                    src={form.img}
-                    alt="Preview da receita"
-                    width={128}
-                    height={128}
-                    className="object-cover rounded border"
-                  />
-                </div>
-              )}
             </div>
             <div className="grid w-full gap-1">
               <Label className="text-gray-500 pl-1">

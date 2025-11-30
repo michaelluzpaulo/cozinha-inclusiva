@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import HeaderMenu from "@/components/HeaderMenu";
 import Footer from "@/components/Footer";
 import Breadcrumb from "@/components/Breadcrumb";
+import RatedRestaurantsCard from "./_components/RatedRestaurantsCard";
 
 function DashboardContent() {
   const { client, logout } = useAuth();
@@ -103,17 +104,7 @@ function DashboardContent() {
                 </Link>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg border">
-                <h3 className="font-medium text-gray-900 mb-2">
-                  Restaurantes Salvos
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Seus restaurantes preferidos
-                </p>
-                <button className="mt-2 text-green-600 hover:text-green-700 text-sm font-medium">
-                  Ver Restaurantes →
-                </button>
-              </div>
+              <RatedRestaurantsCard />
 
               <div className="bg-gray-50 p-4 rounded-lg border">
                 <h3 className="font-medium text-gray-900 mb-2">Perfil</h3>

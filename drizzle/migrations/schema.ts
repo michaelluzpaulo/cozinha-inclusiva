@@ -136,3 +136,23 @@ export const restaurantRestriction = pgTable("restaurant_restriction", {
 		}).onDelete("cascade"),
 	primaryKey({ columns: [table.restaurantId, table.restrictionId], name: "restaurant_restriction_pkey"}),
 ]);
+
+export const clientRecipeFavorites = pgTable("client_recipe_favorites", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	clientId: bigint("client_id", { mode: "number" }).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	recipeId: bigint("recipe_id", { mode: "number" }).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [clients.id],
+			name: "client_recipe_favorites_client_id_fkey"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.recipeId],
+			foreignColumns: [recipes.id],
+			name: "client_recipe_favorites_recipe_id_fkey"
+		}).onDelete("cascade"),
+	primaryKey({ columns: [table.clientId, table.recipeId], name: "client_recipe_favorites_pkey"}),
+]);

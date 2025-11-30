@@ -48,6 +48,7 @@ export const users = pgTable(
   {
     id: bigserial("id", { mode: "bigint" }).primaryKey().notNull(),
     name: varchar("name", { length: 100 }).notNull(),
+    email: varchar("email", { length: 150 }).notNull().unique(),
     active: boolean("active").default(true),
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -227,6 +228,32 @@ export const clientRecipeFavorites = pgTable(
       columns: [table.clientId, table.recipeId],
       name: "client_recipe_favorites_pkey",
     }),
+  ]
+);
+// NOVA TABELA - Restaurant Ratings
+export const restaurantRatings = pgTable(
+  "restaurant_ratings",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+    restaurantId: bigint("restaurant_id", { mode: "number" }).notNull(),
+    clientId: bigint("client_id", { mode: "number" }),
+    stars: integer("stars").default(5).notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.restaurantId],
+      foreignColumns: [restaurants.id],
+      name: "restaurant_ratings_restaurant_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.clientId],
+      foreignColumns: [clients.id],
+      name: "restaurant_ratings_client_id_fkey",
+    }).onDelete("set null"),
   ]
 );
 

@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1762739363094,
-      "tag": "0000_unusual_wither",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1762739492155,
-      "tag": "0001_steep_the_enforcers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1762739571335,
-      "tag": "0002_wide_doorman",
+      "when": 1763337242022,
+      "tag": "0000_create_restaurant_ratings_table",
       "breakpoints": true
     }
   ]

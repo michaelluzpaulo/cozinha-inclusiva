@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,34 +14,94 @@ import {
 } from "@/components/ui/table";
 import { Edit, Trash2, Plus } from "lucide-react";
 import CreateUserDialog from "./_component/CreateUserDialog";
-
-// Dados simulados
-const USERS = [
-  { id: 1, name: "Michael Luz", email: "michael@example.com" },
-  { id: 2, name: "Ana Souza", email: "ana@example.com" },
-  { id: 3, name: "João Silva", email: "joao@example.com" },
-];
+import EditUserDialog from "./_component/EditUserDialog";
+import { User } from "@/Contracts/User";
 
 export default function UsersPage() {
   const [queryId, setQueryId] = useState("");
   const [queryName, setQueryName] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredUsers = USERS.filter((user) => {
-    const matchId = queryId ? user.id === Number(queryId) : true;
-    const matchName = queryName
-      ? user.name.toLowerCase().includes(queryName.toLowerCase())
-      : true;
-    return matchId && matchName;
-  });
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  useEffect(() => {
+    filterUsers();
+  }, [users, queryId, queryName]);
+
+  async function loadUsers() {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/admin/users?active=true");
+      if (!response.ok) throw new Error("Erro ao buscar usuários");
+
+      const data = await response.json();
+      setUsers(data.users);
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function filterUsers() {
+    const filtered = users.filter((user) => {
+      const matchId = queryId ? user.id === Number(queryId) : true;
+      const matchName = queryName
+        ? user.name.toLowerCase().includes(queryName.toLowerCase())
+        : true;
+      return matchId && matchName;
+    });
+    setFilteredUsers(filtered);
+  }
 
   function handleSearch() {
-    // opcional: triggerar pesquisa via API
-    console.log("Pesquisar", queryId, queryName);
+    filterUsers();
   }
 
   function handleCreateUser() {
     setIsCreateUserDialogOpen(true);
+  }
+
+  function handleEditUser(user: User) {
+    setSelectedUser(user);
+    setIsEditUserDialogOpen(true);
+  }
+
+  async function handleDeleteUser(user: User) {
+    if (!user.id) return;
+
+    const confirmed = confirm(
+      `Tem certeza que deseja desativar o usuário "${user.name}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Erro ao desativar usuário");
+
+      loadUsers(); // Recarregar lista
+    } catch (error) {
+      console.error("Erro ao deletar usuário:", error);
+      alert("Erro ao desativar usuário");
+    }
+  }
+
+  function handleUserCreated() {
+    loadUsers();
+  }
+
+  function handleUserUpdated() {
+    loadUsers();
   }
 
   return (
@@ -80,32 +140,67 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="w-16 text-center">{user.id}</TableCell>
-                  <TableCell className="min-w-0">{user.name}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex gap-1 justify-center w-24">
-                      <Button variant="outline" size="sm" title="Editar">
-                        <Edit size={16} />
-                      </Button>
-                      <Button variant="destructive" size="sm" title="Excluir">
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {filteredUsers.length === 0 && (
+              {isLoading ? (
                 <TableRow>
                   <TableCell
                     colSpan={3}
                     className="text-center text-sm text-gray-500"
                   >
-                    Nenhum usuário encontrado
+                    Carregando usuários...
                   </TableCell>
                 </TableRow>
+              ) : (
+                <>
+                  {filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="w-16 text-center">
+                        {user.id}
+                      </TableCell>
+                      <TableCell className="min-w-0">
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {user.roleName}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex gap-1 justify-center w-24">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Editar"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            title="Desativar"
+                            onClick={() => handleDeleteUser(user)}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {filteredUsers.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center text-sm text-gray-500"
+                      >
+                        Nenhum usuário encontrado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               )}
             </TableBody>
           </Table>
@@ -114,7 +209,14 @@ export default function UsersPage() {
       <CreateUserDialog
         open={isCreateUserDialogOpen}
         onOpenChange={setIsCreateUserDialogOpen}
-        // onAddUser={handleAddUser}
+        onUserCreated={handleUserCreated}
+      />
+
+      <EditUserDialog
+        open={isEditUserDialogOpen}
+        onOpenChange={setIsEditUserDialogOpen}
+        user={selectedUser}
+        onUserUpdated={handleUserUpdated}
       />
     </div>
   );

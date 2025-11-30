@@ -18,6 +18,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { generateSlug } from "@/lib/utils";
+import ImageUpload from "@/components/ImageUpload";
+import { CreateRestaurantAction } from "@/Actions/Restaurant/CreateRestaurantAction";
 
 interface CreateRestaurantDialogProps {
   open: boolean;
@@ -54,6 +56,7 @@ const initStateForm = {
   district: "",
   street: "",
   number: "",
+  img: "",
   restrictions: [] as number[],
 };
 
@@ -65,6 +68,7 @@ export default function CreateRestaurantDialog({
   const [form, setForm] = useState<typeof initStateForm>(initStateForm);
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loadingRestrictions, setLoadingRestrictions] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function fetchRestrictions() {
@@ -81,21 +85,45 @@ export default function CreateRestaurantDialog({
     if (open) fetchRestrictions();
   }, [open]);
 
-  function handleSave() {
+  // Debug: Log sempre que form.img mudar
+  useEffect(() => {
+    console.log("Form.img atualizado:", form.img);
+  }, [form.img]);
+
+  async function handleSave() {
     if (!form.name) {
       alert("O nome do restaurante é obrigatório.");
       return;
     }
-    // Gera slug a partir do nome
-    const slug = generateSlug(form.name);
-    onAddRestaurant?.({ ...form, user_id: 1, slug });
-    setForm(initStateForm);
-    onOpenChange(false); // fecha o modal
+
+    console.log("Form data antes do save (restaurant):", form);
+
+    setSaving(true);
+    try {
+      // Gera slug a partir do nome
+      const slug = generateSlug(form.name);
+      const restaurantData = { ...form, user_id: 1, slug };
+
+      console.log(
+        "Dados que serão enviados para CreateRestaurantAction:",
+        restaurantData
+      );
+
+      await CreateRestaurantAction.execute(restaurantData);
+      onAddRestaurant?.();
+      setForm(initStateForm);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao salvar restaurante:", error);
+      alert("Erro ao salvar restaurante. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[950px]">
+      <DialogContent className="sm:max-w-[950px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Adicionar Restaurante</DialogTitle>
           <DialogDescription>
@@ -181,6 +209,32 @@ export default function CreateRestaurantDialog({
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
+            />
+          </div>
+
+          <div className="grid w-full gap-1 py-2">
+            <Label className="text-gray-500 pl-1">Imagem do restaurante</Label>
+            <ImageUpload
+              currentImage={form.img}
+              onUpload={async (file: File) => {
+                const formData = new FormData();
+                formData.append("file", file);
+                const response = await fetch("/api/upload/restaurant", {
+                  method: "POST",
+                  body: formData,
+                });
+                if (!response.ok) throw new Error("Erro no upload");
+                const data = await response.json();
+                return data.imageUrl;
+              }}
+              onImageChange={(imageUrl) => {
+                console.log("onImageChange chamado - imageUrl:", imageUrl);
+                console.log("Form atual antes da atualização:", form);
+                const newForm = { ...form, img: imageUrl || "" };
+                console.log("Novo form após atualização:", newForm);
+                setForm(newForm);
+              }}
+              accept="image/*"
             />
           </div>
 
@@ -291,8 +345,8 @@ export default function CreateRestaurantDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="default" onClick={handleSave}>
-            Salvar
+          <Button variant="default" onClick={handleSave} disabled={saving}>
+            {saving ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>
