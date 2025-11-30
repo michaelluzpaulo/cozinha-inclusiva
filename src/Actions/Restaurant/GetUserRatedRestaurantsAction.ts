@@ -58,12 +58,15 @@ export class GetUserRatedRestaurantsAction {
       // Mapear os dados para o formato esperado
       const ratedRestaurants: RestaurantWithRating[] = ratings
         .filter((rating) => rating.restaurants) // Filtrar apenas ratings com restaurante válido
-        .map((rating) => ({
-          ...rating.restaurants,
-          userRating: rating.stars,
-          ratingComment: rating.comment || undefined,
-          ratedAt: rating.created_at,
-        }));
+        .map((rating) => {
+          const restaurant = rating.restaurants as any;
+          return {
+            ...restaurant,
+            userRating: rating.stars,
+            ratingComment: rating.comment || undefined,
+            ratedAt: rating.created_at,
+          };
+        });
 
       return ratedRestaurants;
     } catch (error) {

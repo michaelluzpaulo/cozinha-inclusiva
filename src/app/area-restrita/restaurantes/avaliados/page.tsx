@@ -22,7 +22,7 @@ function RatedRestaurantsContent() {
 
   useEffect(() => {
     async function fetchRatedRestaurants() {
-      if (!client) return;
+      if (!client || !client.id) return;
 
       try {
         setLoading(true);

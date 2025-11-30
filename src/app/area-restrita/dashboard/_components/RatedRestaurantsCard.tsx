@@ -17,7 +17,7 @@ export default function RatedRestaurantsCard() {
 
   useEffect(() => {
     async function fetchRatedRestaurants() {
-      if (!client) return;
+      if (!client || !client.id) return;
 
       console.log("🔍 RatedRestaurantsCard - Cliente logado:", client);
 

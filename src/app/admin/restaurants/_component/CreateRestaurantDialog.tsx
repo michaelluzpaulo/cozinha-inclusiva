@@ -110,7 +110,7 @@ export default function CreateRestaurantDialog({
       );
 
       await CreateRestaurantAction.execute(restaurantData);
-      onAddRestaurant?.();
+      onAddRestaurant?.(restaurantData);
       setForm(initStateForm);
       onOpenChange(false);
     } catch (error) {
